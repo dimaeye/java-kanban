@@ -4,13 +4,12 @@ public class Task {
     protected Integer id;
     protected String title;
     protected String description;
-    protected TaskStatus status;
+    protected TaskStatus status = TaskStatus.NEW;
 
-    public Task(Integer id, String title, String description, TaskStatus status) {
+    public Task(Integer id, String title, String description) {
         this.id = id;
         this.title = title;
         this.description = description;
-        this.status = status;
     }
 
     public Integer getId() {

@@ -4,13 +4,12 @@ import domain.Task;
 import domain.TaskNotFoundException;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class TaskManagerImpl implements TaskManager<Task> {
 
-    private final Map<Integer, Task> tasks = new HashMap<>();
+    private final Map<Integer, Task> tasks = DataStore.tasks;
 
     @Override
     public List<Task> getAll() {
