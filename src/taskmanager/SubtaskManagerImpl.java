@@ -5,9 +5,12 @@ import domain.Subtask;
 import domain.TaskNotFoundException;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class SubtaskManagerImpl implements TaskManager<Subtask> {
+
+    private static final AtomicInteger subtaskId = new AtomicInteger(0);
 
     private final Map<Integer, Epic> epics = DataStore.epics;
 
@@ -40,6 +43,7 @@ public class SubtaskManagerImpl implements TaskManager<Subtask> {
 
     @Override
     public void create(Subtask task) {
+        task.setId(subtaskId.incrementAndGet());
         Epic epic = epics.get(task.getEpicId());
         epic.addSubtask(task);
     }

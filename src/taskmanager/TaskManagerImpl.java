@@ -6,8 +6,11 @@ import domain.TaskNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class TaskManagerImpl implements TaskManager<Task> {
+
+    private static final AtomicInteger taskId = new AtomicInteger(0);
 
     private final Map<Integer, Task> tasks = DataStore.tasks;
 
@@ -31,6 +34,7 @@ public class TaskManagerImpl implements TaskManager<Task> {
 
     @Override
     public void create(Task task) {
+        task.setId(taskId.incrementAndGet());
         tasks.put(task.getId(), task);
     }
 

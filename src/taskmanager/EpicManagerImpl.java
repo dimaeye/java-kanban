@@ -8,8 +8,11 @@ import domain.TaskNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class EpicManagerImpl implements TaskManager<Epic>, EpicManager {
+
+    private static final AtomicInteger epicId = new AtomicInteger(0);
 
     private final Map<Integer, Epic> epics = DataStore.epics;
 
@@ -33,6 +36,7 @@ public class EpicManagerImpl implements TaskManager<Epic>, EpicManager {
 
     @Override
     public void create(Epic task) {
+        task.setId(epicId.incrementAndGet());
         epics.put(task.getId(), task);
     }
 
