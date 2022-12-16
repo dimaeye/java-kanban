@@ -1,5 +1,6 @@
 package taskmanager;
 
+import domain.CreateTaskException;
 import domain.Epic;
 import domain.Subtask;
 import domain.TaskNotFoundException;
@@ -42,17 +43,33 @@ public class SubtaskManagerImpl implements TaskManager<Subtask> {
     }
 
     @Override
-    public void create(Subtask task) {
-        task.setId(subtaskId.incrementAndGet());
-        Epic epic = epics.get(task.getEpicId());
-        epic.addSubtask(task);
+    public void create(Subtask task) throws CreateTaskException {
+        if (epics.containsKey(task.getEpicId()) && !isSubTaskExist(task)) {
+            Epic epic = epics.get(task.getEpicId());
+            epic.addSubtask(task);
+        } else {
+            throw new CreateTaskException(task.getId());
+        }
+    }
+
+    private boolean isSubTaskExist(Subtask subtask) {
+        try {
+            this.get(subtask.getId());
+            return true;
+        } catch (TaskNotFoundException e) {
+            return false;
+        }
     }
 
     @Override
     public void update(Subtask task) throws TaskNotFoundException {
-        Epic epic = epics.get(task.getEpicId());
-        epic.removeSubtask(task.getId());
-        epic.addSubtask(task);
+        if (epics.containsKey(task.getEpicId()) && isSubTaskExist(task)) {
+            Epic epic = epics.get(task.getEpicId());
+            epic.removeSubtask(task.getId());
+            epic.addSubtask(task);
+        } else {
+            throw new TaskNotFoundException(task.getId());
+        }
     }
 
     @Override
@@ -60,5 +77,10 @@ public class SubtaskManagerImpl implements TaskManager<Subtask> {
         Subtask subtask = get(id);
         Epic epic = epics.get(subtask.getEpicId());
         epic.removeSubtask(subtask.getId());
+    }
+
+    @Override
+    public Integer getUniqueId() {
+        return subtaskId.incrementAndGet();
     }
 }

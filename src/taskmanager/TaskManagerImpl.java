@@ -1,5 +1,6 @@
 package taskmanager;
 
+import domain.CreateTaskException;
 import domain.Task;
 import domain.TaskNotFoundException;
 
@@ -33,9 +34,11 @@ public class TaskManagerImpl implements TaskManager<Task> {
     }
 
     @Override
-    public void create(Task task) {
-        task.setId(taskId.incrementAndGet());
-        tasks.put(task.getId(), task);
+    public void create(Task task) throws CreateTaskException {
+        if (!tasks.containsKey(task.getId()))
+            tasks.put(task.getId(), task);
+        else
+            throw new CreateTaskException(task.getId());
     }
 
     @Override
@@ -54,5 +57,10 @@ public class TaskManagerImpl implements TaskManager<Task> {
             tasks.remove(id);
         else
             throw new TaskNotFoundException(id);
+    }
+
+    @Override
+    public Integer getUniqueId() {
+        return taskId.incrementAndGet();
     }
 }

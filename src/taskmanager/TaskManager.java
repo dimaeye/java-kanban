@@ -1,5 +1,6 @@
 package taskmanager;
 
+import domain.CreateTaskException;
 import domain.Task;
 import domain.TaskNotFoundException;
 
@@ -12,9 +13,11 @@ public interface TaskManager<T extends Task> {
 
     T get(Integer id) throws TaskNotFoundException;
 
-    void create(T task);
+    void create(T task) throws CreateTaskException;
 
     void update(T task) throws TaskNotFoundException;
 
     void remove(Integer id) throws TaskNotFoundException;
+
+    Integer getUniqueId();
 }

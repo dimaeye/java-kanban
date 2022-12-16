@@ -5,10 +5,13 @@ import java.util.List;
 import java.util.Objects;
 
 public class Epic extends Task {
-    private List<Subtask> subtasks;
+    private List<Subtask> subtasks = new ArrayList<>();
 
-    public Epic(Integer id, String title, String description, List<Subtask> subtasks) {
+    public Epic(Integer id, String title, String description) {
         super(id, title, description);
+    }
+
+    public void setSubtasks(List<Subtask> subtasks) {
         this.subtasks = subtasks;
         verifyEpicStatus();
     }
@@ -57,5 +60,16 @@ public class Epic extends Task {
     public void setStatus(TaskStatus status) throws EpicSetStatusException {
         if (this.status != status)
             throw new EpicSetStatusException(id);
+    }
+
+    @Override
+    public String toString() {
+        return "Epic{" +
+                "subtasks=" + subtasks +
+                ", id=" + id +
+                ", title='" + title + '\'' +
+                ", description='" + description + '\'' +
+                ", status=" + status +
+                '}';
     }
 }

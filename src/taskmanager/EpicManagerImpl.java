@@ -1,9 +1,6 @@
 package taskmanager;
 
-import domain.Epic;
-import domain.EpicSetStatusException;
-import domain.Subtask;
-import domain.TaskNotFoundException;
+import domain.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,9 +32,11 @@ public class EpicManagerImpl implements TaskManager<Epic>, EpicManager {
     }
 
     @Override
-    public void create(Epic task) {
-        task.setId(epicId.incrementAndGet());
-        epics.put(task.getId(), task);
+    public void create(Epic task) throws CreateTaskException {
+        if (!epics.containsKey(task.getId()))
+            epics.put(task.getId(), task);
+        else
+            throw new CreateTaskException(task.getId());
     }
 
     @Override
@@ -58,6 +57,11 @@ public class EpicManagerImpl implements TaskManager<Epic>, EpicManager {
             epics.remove(id);
         else
             throw new TaskNotFoundException(id);
+    }
+
+    @Override
+    public Integer getUniqueId() {
+        return epicId.incrementAndGet();
     }
 
     @Override
