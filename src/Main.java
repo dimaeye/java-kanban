@@ -76,6 +76,8 @@ public class Main {
 
         List<Epic> actualEpics = epicManager.getAll();
         actualEpics.forEach(System.out::println);
+        actualEpics.forEach(epic -> epic.getAllSubtasks().forEach(System.out::println));
+        System.out.println("-".repeat(120));
 
         List<Subtask> actualSubtasks = subtaskManager.getAll();
         actualSubtasks.forEach(System.out::println);
