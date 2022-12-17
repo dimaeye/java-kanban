@@ -1,6 +1,9 @@
 package taskmanager;
 
 import domain.*;
+import domain.exceptions.CreateTaskException;
+import domain.exceptions.EpicSetStatusException;
+import domain.exceptions.TaskNotFoundException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +27,7 @@ public class EpicManagerImpl implements TaskManager<Epic>, EpicManager {
     }
 
     @Override
-    public Epic get(Integer id) throws TaskNotFoundException {
+    public Epic get(int id) throws TaskNotFoundException {
         if (epics.containsKey(id))
             return epics.get(id);
         else
@@ -52,7 +55,7 @@ public class EpicManagerImpl implements TaskManager<Epic>, EpicManager {
     }
 
     @Override
-    public void remove(Integer id) throws TaskNotFoundException {
+    public void remove(int id) throws TaskNotFoundException {
         if (epics.containsKey(id))
             epics.remove(id);
         else
@@ -60,12 +63,12 @@ public class EpicManagerImpl implements TaskManager<Epic>, EpicManager {
     }
 
     @Override
-    public Integer getUniqueId() {
+    public int getUniqueId() {
         return epicId.incrementAndGet();
     }
 
     @Override
-    public List<Subtask> getAllSubtasksOfEpic(Integer epicId) throws TaskNotFoundException {
+    public List<Subtask> getAllSubtasksOfEpic(int epicId) throws TaskNotFoundException {
         if (epics.containsKey(epicId))
             return epics.get(epicId).getAllSubtasks();
         else

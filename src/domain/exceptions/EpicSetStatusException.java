@@ -1,4 +1,4 @@
-package domain;
+package domain.exceptions;
 
 public class EpicSetStatusException extends RuntimeException {
     public EpicSetStatusException(int id) {

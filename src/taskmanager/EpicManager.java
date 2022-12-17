@@ -1,10 +1,10 @@
 package taskmanager;
 
 import domain.Subtask;
-import domain.TaskNotFoundException;
+import domain.exceptions.TaskNotFoundException;
 
 import java.util.List;
 
 public interface EpicManager {
-    List<Subtask> getAllSubtasksOfEpic(Integer epicId) throws TaskNotFoundException;
+    List<Subtask> getAllSubtasksOfEpic(int epicId) throws TaskNotFoundException;
 }

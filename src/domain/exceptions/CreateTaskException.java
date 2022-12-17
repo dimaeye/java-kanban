@@ -1,4 +1,4 @@
-package domain;
+package domain.exceptions;
 
 public class CreateTaskException extends RuntimeException {
     public CreateTaskException(int id) {

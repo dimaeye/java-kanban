@@ -1,22 +1,22 @@
 package domain;
 
 public class Task {
-    protected Integer id;
+    protected int id;
     protected String title;
     protected String description;
     protected TaskStatus status = TaskStatus.NEW;
 
-    public Task(Integer id, String title, String description) {
+    public Task(int id, String title, String description) {
         this.id = id;
         this.title = title;
         this.description = description;
     }
 
-    public Integer getId() {
+    public int getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(int id) {
         this.id = id;
     }
 
