@@ -57,15 +57,15 @@ public class Main {
         List<Subtask> subtasks = new ArrayList<>();
         subtasks.add(
                 new Subtask(subtaskManager.getUniqueId(),
-                        "Подзадача 1 (Эпик 1)", "Описание подзадачи 1", firstEpic.getId())
+                        "Подзадача 1 (Эпик 1)", "Описание подзадачи 1", firstEpic)
         );
         subtasks.add(
                 new Subtask(subtaskManager.getUniqueId(),
-                        "Подзадача 2 (Эпик 1)", "Описание подзадачи 2", firstEpic.getId())
+                        "Подзадача 2 (Эпик 1)", "Описание подзадачи 2", firstEpic)
         );
         subtasks.add(
                 new Subtask(subtaskManager.getUniqueId(),
-                        "Подзадача 1 (Эпик 2)", "Описание подзадачи 1", secondEpic.getId())
+                        "Подзадача 1 (Эпик 2)", "Описание подзадачи 1", secondEpic)
         );
 
         epicManager.create(firstEpic);

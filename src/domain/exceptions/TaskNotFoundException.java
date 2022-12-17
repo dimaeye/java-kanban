@@ -1,4 +1,4 @@
-package domain;
+package domain.exceptions;
 
 public class TaskNotFoundException extends RuntimeException {
     public TaskNotFoundException(int id) {

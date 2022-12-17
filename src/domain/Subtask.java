@@ -1,25 +1,37 @@
 package domain;
 
 public class Subtask extends Task {
-    private Integer epicId;
+    private Epic epic;
 
-    public Subtask(Integer id, String title, String description, Integer epicId) {
+    public Subtask(int id, String title, String description, Epic epic) {
         super(id, title, description);
-        this.epicId = epicId;
+        this.epic = epic;
     }
 
-    public Integer getEpicId() {
-        return epicId;
+    public Epic getEpic() {
+        return epic;
     }
 
-    public void setEpicId(Integer epicId) {
-        this.epicId = epicId;
+    public void setEpic(Epic epic) {
+        this.epic = epic;
+    }
+
+    public int getEpicId() {
+        return epic.getId();
+    }
+
+    @Override
+    public void setStatus(TaskStatus status) {
+        if (this.status != status) {
+            super.setStatus(status);
+            epic.verifyEpicStatus();
+        }
     }
 
     @Override
     public String toString() {
         return "Subtask{" +
-                "epicId=" + epicId +
+                "epicId=" + getEpicId() +
                 ", id=" + id +
                 ", title='" + title + '\'' +
                 ", description='" + description + '\'' +
