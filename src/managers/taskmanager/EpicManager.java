@@ -1,4 +1,4 @@
-package taskmanager;
+package managers.taskmanager;
 
 import domain.Subtask;
 import domain.exceptions.TaskNotFoundException;
