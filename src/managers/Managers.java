@@ -20,15 +20,18 @@ public class Managers {
     private static final TaskManager<Subtask> subtaskManager = new InMemorySubtaskManagerImpl(historyManager);
 
     public static <T extends Task> TaskManager<T> getDefault(Class<T> classOfT) {
-        TaskManager<? extends Task> result;
+        TaskManager<? extends Task> manager;
         if (Epic.class.equals(classOfT)) {
-            result = epicManager;
+            manager = epicManager;
         } else if (Subtask.class.equals(classOfT)) {
-            result = subtaskManager;
+            manager = subtaskManager;
         } else {
-            result = taskManager;
+            manager = taskManager;
         }
-        return (TaskManager<T>) result;
+
+        @SuppressWarnings("unchecked")
+        TaskManager<T> result = (TaskManager<T>) manager;
+        return result;
     }
 
     public static HistoryManager getDefaultHistory() {
