@@ -34,10 +34,9 @@ public class Main {
         System.out.println("-".repeat(120));
 
         removeEpic();
-
         System.out.println("-".repeat(120));
-        System.out.println("История просмотра задач:");
-        historyManager.getHistory().forEach(System.out::println);
+
+        checkHistory();
     }
 
     private static void createTasks() {
@@ -129,5 +128,27 @@ public class Main {
 
         System.out.println("-".repeat(120));
         subtaskManager.getAll().forEach(System.out::println);
+    }
+
+    private static void checkHistory() {
+        System.out.println("Текущая история просмотра задач:");
+        historyManager.getHistory().forEach(System.out::println);
+        System.out.println("-".repeat(120));
+
+        System.out.println("Проверка обновления журнала история");
+        Task anyTask = taskManager.getAll().stream().findAny().orElseThrow();
+        epicManager.getAll();
+        subtaskManager.getAll();
+        Task expectedTask = taskManager.get(anyTask.getId());
+        System.out.println("Выполнен просмотр задачи - " + expectedTask);
+
+        List<Task> history = historyManager.getHistory();
+        Task actualTask = history.get(history.size() - 1);
+        if (expectedTask.equals(actualTask)) {
+            System.out.println("Текущая история просмотра задач:");
+            history.forEach(System.out::println);
+            System.out.println("Просмотр последний задачи в менеджере истории отображается верно");
+        } else
+            System.out.println("Менеджер истории не отобразил полседний просмотр задачи!");
     }
 }
