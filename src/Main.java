@@ -2,19 +2,20 @@ import domain.Epic;
 import domain.Subtask;
 import domain.Task;
 import domain.TaskStatus;
-import taskmanager.EpicManagerImpl;
-import taskmanager.SubtaskManagerImpl;
-import taskmanager.TaskManager;
-import taskmanager.TaskManagerImpl;
+import managers.Managers;
+import managers.historymanager.HistoryManager;
+import managers.taskmanager.TaskManager;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
 
-    private static final TaskManager<Task> taskManager = new TaskManagerImpl();
-    private static final TaskManager<Epic> epicManager = new EpicManagerImpl();
-    private static final TaskManager<Subtask> subtaskManager = new SubtaskManagerImpl();
+    private static final TaskManager<Task> taskManager = Managers.getDefault(Task.class);
+    private static final TaskManager<Epic> epicManager = Managers.getDefault(Epic.class);
+    private static final TaskManager<Subtask> subtaskManager = Managers.getDefault(Subtask.class);
+
+    private static final HistoryManager historyManager = Managers.getDefaultHistory();
 
     public static void main(String[] args) {
         createTasks();
@@ -33,6 +34,9 @@ public class Main {
         System.out.println("-".repeat(120));
 
         removeEpic();
+        System.out.println("-".repeat(120));
+
+        checkHistory();
     }
 
     private static void createTasks() {
@@ -124,5 +128,27 @@ public class Main {
 
         System.out.println("-".repeat(120));
         subtaskManager.getAll().forEach(System.out::println);
+    }
+
+    private static void checkHistory() {
+        System.out.println("Текущая история просмотра задач:");
+        historyManager.getHistory().forEach(System.out::println);
+        System.out.println("-".repeat(120));
+
+        System.out.println("Проверка обновления журнала история");
+        Task anyTask = taskManager.getAll().stream().findAny().orElseThrow();
+        epicManager.getAll();
+        subtaskManager.getAll();
+        Task expectedTask = taskManager.get(anyTask.getId());
+        System.out.println("Выполнен просмотр задачи - " + expectedTask);
+
+        List<Task> history = historyManager.getHistory();
+        Task actualTask = history.get(history.size() - 1);
+        if (expectedTask.equals(actualTask)) {
+            System.out.println("Текущая история просмотра задач:");
+            history.forEach(System.out::println);
+            System.out.println("Просмотр последний задачи в менеджере истории отображается верно");
+        } else
+            System.out.println("Менеджер истории не отобразил полседний просмотр задачи!");
     }
 }

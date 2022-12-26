@@ -1,4 +1,4 @@
-package taskmanager;
+package managers.taskmanager;
 
 import domain.Task;
 import domain.exceptions.CreateTaskException;
