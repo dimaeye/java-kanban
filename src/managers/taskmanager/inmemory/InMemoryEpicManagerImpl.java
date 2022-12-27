@@ -1,12 +1,9 @@
 package managers.taskmanager.inmemory;
 
 import domain.Epic;
-import domain.Subtask;
 import domain.exceptions.CreateTaskException;
 import domain.exceptions.EpicSetStatusException;
 import domain.exceptions.TaskNotFoundException;
-import managers.historymanager.HistoryManager;
-import managers.taskmanager.EpicManager;
 import managers.taskmanager.TaskManager;
 
 import java.util.ArrayList;
@@ -14,23 +11,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class InMemoryEpicManagerImpl implements TaskManager<Epic>, EpicManager {
+class InMemoryEpicManagerImpl implements TaskManager<Epic> {
 
     private static final AtomicInteger epicId = new AtomicInteger(0);
 
     private final Map<Integer, Epic> epics = InMemoryDataStore.epics;
 
-    private final HistoryManager historyManager;
-
-    public InMemoryEpicManagerImpl(HistoryManager historyManager) {
-        this.historyManager = historyManager;
-    }
-
     @Override
     public List<Epic> getAll() {
-        List<Epic> allEpics = new ArrayList<>(epics.values());
-        allEpics.forEach(historyManager::add);
-        return allEpics;
+        return new ArrayList<>(epics.values());
     }
 
     @Override
@@ -40,11 +29,9 @@ public class InMemoryEpicManagerImpl implements TaskManager<Epic>, EpicManager {
 
     @Override
     public Epic get(int id) throws TaskNotFoundException {
-        if (epics.containsKey(id)) {
-            Epic epic = epics.get(id);
-            historyManager.add(epic);
-            return epic;
-        } else
+        if (epics.containsKey(id))
+            return epics.get(id);
+        else
             throw new TaskNotFoundException(id);
     }
 
@@ -79,15 +66,5 @@ public class InMemoryEpicManagerImpl implements TaskManager<Epic>, EpicManager {
     @Override
     public int getUniqueId() {
         return epicId.incrementAndGet();
-    }
-
-    @Override
-    public List<Subtask> getAllSubtasksOfEpic(int epicId) throws TaskNotFoundException {
-        if (epics.containsKey(epicId)) {
-            List<Subtask> subtasks = epics.get(epicId).getAllSubtasks();
-            subtasks.forEach(historyManager::add);
-            return subtasks;
-        } else
-            throw new TaskNotFoundException(epicId);
     }
 }

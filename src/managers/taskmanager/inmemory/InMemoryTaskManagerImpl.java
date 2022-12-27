@@ -3,7 +3,6 @@ package managers.taskmanager.inmemory;
 import domain.Task;
 import domain.exceptions.CreateTaskException;
 import domain.exceptions.TaskNotFoundException;
-import managers.historymanager.HistoryManager;
 import managers.taskmanager.TaskManager;
 
 import java.util.ArrayList;
@@ -11,23 +10,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class InMemoryTaskManagerImpl implements TaskManager<Task> {
+class InMemoryTaskManagerImpl implements TaskManager<Task> {
 
     private static final AtomicInteger taskId = new AtomicInteger(0);
 
     private final Map<Integer, Task> tasks = InMemoryDataStore.tasks;
 
-    private final HistoryManager historyManager;
-
-    public InMemoryTaskManagerImpl(HistoryManager historyManager) {
-        this.historyManager = historyManager;
-    }
-
     @Override
     public List<Task> getAll() {
-        List<Task> allTasks = new ArrayList<>(tasks.values());
-        allTasks.forEach(historyManager::add);
-        return allTasks;
+        return new ArrayList<>(tasks.values());
     }
 
     @Override
@@ -37,11 +28,9 @@ public class InMemoryTaskManagerImpl implements TaskManager<Task> {
 
     @Override
     public Task get(int id) throws TaskNotFoundException {
-        if (tasks.containsKey(id)) {
-            Task task = tasks.get(id);
-            historyManager.add(task);
-            return task;
-        } else
+        if (tasks.containsKey(id))
+            return tasks.get(id);
+        else
             throw new TaskNotFoundException(id);
     }
 

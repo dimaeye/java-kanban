@@ -4,34 +4,25 @@ import domain.Epic;
 import domain.Subtask;
 import domain.exceptions.CreateTaskException;
 import domain.exceptions.TaskNotFoundException;
-import managers.historymanager.HistoryManager;
 import managers.taskmanager.TaskManager;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-public class InMemorySubtaskManagerImpl implements TaskManager<Subtask> {
+class InMemorySubtaskManagerImpl implements TaskManager<Subtask> {
 
     private static final AtomicInteger subtaskId = new AtomicInteger(0);
 
     private final Map<Integer, Epic> epics = InMemoryDataStore.epics;
 
-    private final HistoryManager historyManager;
-
-    public InMemorySubtaskManagerImpl(HistoryManager historyManager) {
-        this.historyManager = historyManager;
-    }
-
     @Override
     public List<Subtask> getAll() {
-        List<Subtask> allSubtasks = epics.values()
+        return epics.values()
                 .stream()
                 .map(Epic::getAllSubtasks)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
-        allSubtasks.forEach(historyManager::add);
-        return allSubtasks;
     }
 
     @Override
@@ -46,11 +37,9 @@ public class InMemorySubtaskManagerImpl implements TaskManager<Subtask> {
         List<Subtask> subtasks = getAll();
         Optional<Subtask> optSubtask =
                 subtasks.stream().filter(subtask -> Objects.equals(subtask.getId(), id)).findFirst();
-        if (optSubtask.isPresent()) {
-            Subtask subtask = optSubtask.get();
-            historyManager.add(subtask);
-            return subtask;
-        } else
+        if (optSubtask.isPresent())
+            return optSubtask.get();
+        else
             throw new TaskNotFoundException(id);
 
     }
