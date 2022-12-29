@@ -2,16 +2,15 @@ package managers;
 
 import managers.historymanager.HistoryManager;
 import managers.historymanager.inmemory.InMemoryHistoryManagerImpl;
-import managers.taskmanager.GeneralTaskManager;
-import managers.taskmanager.inmemory.InMemoryGeneralTaskManagerImpl;
+import managers.taskmanager.TaskManager;
+import managers.taskmanager.inmemory.InMemoryTaskManagerImpl;
 
 public class Managers {
     private static final HistoryManager historyManager = new InMemoryHistoryManagerImpl();
+    private static final TaskManager taskManager = new InMemoryTaskManagerImpl(historyManager);
 
-    private static final GeneralTaskManager generalTaskManager = new InMemoryGeneralTaskManagerImpl(historyManager);
-
-    public static GeneralTaskManager getDefault() {
-        return generalTaskManager;
+    public static TaskManager getDefault() {
+        return taskManager;
     }
 
     public static HistoryManager getDefaultHistory() {

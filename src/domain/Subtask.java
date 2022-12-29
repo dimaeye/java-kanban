@@ -1,23 +1,17 @@
 package domain;
 
+import domain.exceptions.RelatedTaskException;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class Subtask extends Task {
-    private Epic epic;
+    private final Epic epic;
+    public final static int MAX_RELATED_TASKS_SIZE = 1;
 
     public Subtask(int id, String title, String description, Epic epic) {
         super(id, title, description);
         this.epic = epic;
-    }
-
-    public Epic getEpic() {
-        return epic;
-    }
-
-    public void setEpic(Epic epic) {
-        this.epic = epic;
-    }
-
-    public int getEpicId() {
-        return epic.getId();
     }
 
     @Override
@@ -29,9 +23,16 @@ public class Subtask extends Task {
     }
 
     @Override
+    public List<Task> getAllRelatedTasks() throws RelatedTaskException {
+        List<Task> result = new ArrayList<>();
+        result.add(epic);
+        return result;
+    }
+
+    @Override
     public String toString() {
         return "Subtask{" +
-                "epicId=" + getEpicId() +
+                "epicId=" + epic.getId() +
                 ", id=" + id +
                 ", title='" + title + '\'' +
                 ", description='" + description + '\'' +
