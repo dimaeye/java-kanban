@@ -1,5 +1,9 @@
 package domain;
 
+import domain.exceptions.RelatedTaskException;
+
+import java.util.List;
+
 public class Task {
     protected int id;
     protected String title;
@@ -14,10 +18,6 @@ public class Task {
 
     public int getId() {
         return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getTitle() {
@@ -42,6 +42,22 @@ public class Task {
 
     public void setStatus(TaskStatus status) {
         this.status = status;
+    }
+
+    public void addRelatedTask(Task relatedTask) throws RelatedTaskException, IllegalArgumentException {
+        throw new RelatedTaskException();
+    }
+
+    public void removeRelatedTask(int relatedTaskId) throws RelatedTaskException {
+        throw new RelatedTaskException();
+    }
+
+    public List<Task> getAllRelatedTasks() throws RelatedTaskException {
+        throw new RelatedTaskException();
+    }
+
+    public void removeAllRelatedTasks() throws RelatedTaskException {
+        throw new RelatedTaskException();
     }
 
     @Override

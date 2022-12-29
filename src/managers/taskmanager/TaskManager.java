@@ -1,23 +1,57 @@
 package managers.taskmanager;
 
+import domain.Epic;
+import domain.Subtask;
 import domain.Task;
 import domain.exceptions.CreateTaskException;
 import domain.exceptions.TaskNotFoundException;
 
 import java.util.List;
 
-public interface TaskManager<T extends Task> {
-    List<T> getAll();
+public interface TaskManager {
+    List<Task> getAllTasks();
 
-    void removeAll();
+    void removeAllTasks();
 
-    T get(int id) throws TaskNotFoundException;
+    Task getTask(int id) throws TaskNotFoundException;
 
-    void create(T task) throws CreateTaskException;
+    void createTask(Task task) throws CreateTaskException;
 
-    void update(T task) throws TaskNotFoundException;
+    void updateTask(Task task) throws TaskNotFoundException;
 
-    void remove(int id) throws TaskNotFoundException;
+    void removeTask(int id) throws TaskNotFoundException;
 
-    int getUniqueId();
+    int getUniqueTaskId();
+
+
+    List<Epic> getAllEpics();
+
+    void removeAllEpics();
+
+    Epic getEpic(int id) throws TaskNotFoundException;
+
+    void createEpic(Epic epic) throws CreateTaskException;
+
+    void updateEpic(Epic epic) throws TaskNotFoundException;
+
+    void removeEpic(int id) throws TaskNotFoundException;
+
+    List<Subtask> getAllSubtasksOfEpic(int epicId) throws TaskNotFoundException;
+
+    int getUniqueEpicId();
+
+
+    List<Subtask> getAllSubtasks();
+
+    void removeAllSubtasks();
+
+    Subtask getSubtask(int id) throws TaskNotFoundException;
+
+    void createSubtask(Subtask subtask) throws CreateTaskException;
+
+    void updateSubtask(Subtask subtask) throws TaskNotFoundException;
+
+    void removeSubtask(int id) throws TaskNotFoundException;
+
+    int getUniqueSubtaskId();
 }

@@ -1,12 +1,10 @@
 package domain;
 
 import domain.exceptions.EpicSetStatusException;
-import domain.exceptions.TaskNotFoundException;
+import domain.exceptions.RelatedTaskException;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 
 public class Epic extends Task {
     private List<Subtask> subtasks = new ArrayList<>();
@@ -15,8 +13,48 @@ public class Epic extends Task {
         super(id, title, description);
     }
 
-    public void setSubtasks(List<Subtask> subtasks) {
-        this.subtasks = subtasks;
+    @Override
+    public void setStatus(TaskStatus status) throws EpicSetStatusException {
+        if (this.status != status)
+            throw new EpicSetStatusException(id);
+    }
+
+    @Override
+    public void addRelatedTask(Task relatedTask) throws RelatedTaskException, IllegalArgumentException {
+        if (!(relatedTask instanceof Subtask))
+            throw new IllegalArgumentException("К эпику можно привязать только - " + Subtask.class.getSimpleName());
+        if (relatedTask.getAllRelatedTasks().size() == Subtask.MAX_RELATED_TASKS_SIZE
+                && relatedTask.getAllRelatedTasks().get(0).getId() == id) {
+            subtasks.add((Subtask) relatedTask);
+            verifyEpicStatus();
+        } else {
+            throw new RelatedTaskException("Не удалось добавить подзадачу в эпик");
+        }
+    }
+
+    @Override
+    public void removeRelatedTask(int relatedTaskId) throws RelatedTaskException {
+        int indexToRemove = -1;
+        for (int i = 0; i < subtasks.size(); i++) {
+            if (subtasks.get(i).id == relatedTaskId) {
+                indexToRemove = i;
+                break;
+            }
+        }
+        if (indexToRemove >= 0) {
+            subtasks.remove(indexToRemove);
+            verifyEpicStatus();
+        }
+    }
+
+    @Override
+    public List<Task> getAllRelatedTasks() throws RelatedTaskException {
+        return new ArrayList<>(subtasks);
+    }
+
+    @Override
+    public void removeAllRelatedTasks() throws RelatedTaskException {
+        subtasks = new ArrayList<>();
         verifyEpicStatus();
     }
 
@@ -28,50 +66,6 @@ public class Epic extends Task {
             status = TaskStatus.DONE;
         else
             status = TaskStatus.IN_PROGRESS;
-    }
-
-    public Subtask getSubtask(int id) throws TaskNotFoundException {
-        Optional<Subtask> optSubtask = subtasks.stream().filter(subtask -> subtask.getId() == id).findFirst();
-        if (optSubtask.isPresent())
-            return optSubtask.get();
-        else
-            throw new TaskNotFoundException(id);
-    }
-
-    public List<Subtask> getAllSubtasks() {
-        return new ArrayList<>(subtasks);
-    }
-
-    public void addSubtask(Subtask subtask) {
-        if (Objects.equals(subtask.getEpic().getId(), id)) {
-            subtasks.add(subtask);
-            verifyEpicStatus();
-        }
-    }
-
-    public void removeSubtask(int subtaskId) {
-        int indexToRemove = -1;
-        for (int i = 0; i < subtasks.size(); i++) {
-            if (subtasks.get(i).id == subtaskId) {
-                indexToRemove = i;
-                break;
-            }
-        }
-        if (indexToRemove >= 0) {
-            subtasks.remove(indexToRemove);
-            verifyEpicStatus();
-        }
-    }
-
-    public void removeAllSubtasks() {
-        subtasks = new ArrayList<>();
-        verifyEpicStatus();
-    }
-
-    @Override
-    public void setStatus(TaskStatus status) throws EpicSetStatusException {
-        if (this.status != status)
-            throw new EpicSetStatusException(id);
     }
 
     @Override
