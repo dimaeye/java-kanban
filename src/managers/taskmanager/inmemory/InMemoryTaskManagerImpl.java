@@ -18,10 +18,6 @@ public class InMemoryTaskManagerImpl implements TaskManager {
 
     private static final AtomicInteger taskId = new AtomicInteger(0);
 
-    private static final AtomicInteger epicId = new AtomicInteger(0);
-
-    private static final AtomicInteger subtaskId = new AtomicInteger(0);
-
     private final Map<Integer, Task> tasks = InMemoryDataStore.tasks;
 
     private final Map<Integer, Epic> epics = InMemoryDataStore.epics;
@@ -39,6 +35,8 @@ public class InMemoryTaskManagerImpl implements TaskManager {
 
     @Override
     public void removeAllTasks() {
+        for (int taskId : tasks.keySet())
+            historyManager.remove(taskId);
         tasks.clear();
     }
 
@@ -75,9 +73,10 @@ public class InMemoryTaskManagerImpl implements TaskManager {
 
     @Override
     public void removeTask(int id) throws TaskNotFoundException {
-        if (tasks.containsKey(id))
+        if (tasks.containsKey(id)) {
             tasks.remove(id);
-        else
+            historyManager.remove(id);
+        } else
             throw new TaskNotFoundException(id);
     }
 
@@ -94,6 +93,10 @@ public class InMemoryTaskManagerImpl implements TaskManager {
 
     @Override
     public void removeAllEpics() {
+        for (int epicId : epics.keySet()) {
+            epics.get(epicId).getAllRelatedTasks().forEach(t -> historyManager.remove(t.getId()));
+            historyManager.remove(epicId);
+        }
         epics.clear();
     }
 
@@ -129,9 +132,11 @@ public class InMemoryTaskManagerImpl implements TaskManager {
 
     @Override
     public void removeEpic(int id) throws TaskNotFoundException {
-        if (epics.containsKey(id))
+        if (epics.containsKey(id)) {
+            historyManager.remove(id);
+            epics.get(id).getAllRelatedTasks().forEach(t -> historyManager.remove(t.getId()));
             epics.remove(id);
-        else
+        } else
             throw new TaskNotFoundException(id);
     }
 
@@ -150,7 +155,7 @@ public class InMemoryTaskManagerImpl implements TaskManager {
 
     @Override
     public int getUniqueEpicId() {
-        return epicId.incrementAndGet();
+        return taskId.incrementAndGet();
     }
 
 
@@ -167,8 +172,11 @@ public class InMemoryTaskManagerImpl implements TaskManager {
 
     @Override
     public void removeAllSubtasks() {
-        for (Epic epic : epics.values())
+        for (Epic epic : epics.values()) {
+            for (Task relatedTask : epic.getAllRelatedTasks())
+                historyManager.remove(relatedTask.getId());
             epic.removeAllRelatedTasks();
+        }
     }
 
     @Override
@@ -214,11 +222,12 @@ public class InMemoryTaskManagerImpl implements TaskManager {
         Subtask subtask = getSubtask(id);
         Epic epic = epics.get(subtask.getAllRelatedTasks().get(0).getId());
         epic.removeRelatedTask(subtask.getId());
+        historyManager.remove(subtask.getId());
     }
 
     @Override
     public int getUniqueSubtaskId() {
-        return subtaskId.incrementAndGet();
+        return taskId.incrementAndGet();
     }
 
     private boolean isSubTaskExist(Subtask subtask) {
