@@ -18,14 +18,10 @@ class TaskLinkedList<T extends Task> {
         return true;
     }
 
-    public T get(int id) {
-        return history.get(id).task;
-    }
-
-    public boolean remove(T task) {
-        if (history.containsKey(task.getId())) {
-            removeNode(history.get(task.getId()));
-            history.remove(task.getId());
+    public boolean removeTask(int taskId) {
+        if (history.containsKey(taskId)) {
+            removeNode(history.get(taskId));
+            history.remove(taskId);
         }
         return true;
     }
@@ -78,5 +74,17 @@ class TaskLinkedList<T extends Task> {
         }
         history.remove(node.task.getId());
         node.task = null;
+    }
+
+    static class TaskNode<T extends Task> {
+        T task;
+        TaskNode<T> next;
+        TaskNode<T> prev;
+
+        public TaskNode(T task, TaskNode<T> next, TaskNode<T> prev) {
+            this.task = task;
+            this.next = next;
+            this.prev = prev;
+        }
     }
 }

@@ -15,7 +15,7 @@ public class InMemoryHistoryManagerImpl implements HistoryManager {
 
     @Override
     public void remove(int id) {
-        history.remove(history.get(id));
+        history.removeTask(id);
     }
 
     @Override
