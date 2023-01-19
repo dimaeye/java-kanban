@@ -41,32 +41,42 @@ class TaskLinkedList<T extends Task> {
     }
 
     private void linkLast(T task) {
-        if (first == null)
-            first = new TaskNode<>(task, null, null);
-        else if (last != null) {
-            TaskNode<T> newNode = new TaskNode<>(task, null, this.last);
-            this.last.next = newNode;
-            if (history.containsKey(task.getId()))
-                removeNode(history.get(task.getId()));
-            history.put(task.getId(), newNode);
-        } else {
-            TaskNode<T> newNode = new TaskNode<>(task, null, this.first);
+        if (history.containsKey(task.getId()))
+            removeNode(history.get(task.getId()));
+        TaskNode<T> newNode;
+        if (this.first == null) {
+            newNode = new TaskNode<>(task, null, null);
+            this.first = newNode;
+        } else if (this.last == null) {
+            newNode = new TaskNode<>(task, null, this.first);
             this.last = newNode;
-            if (history.containsKey(task.getId()))
-                removeNode(history.get(task.getId()));
-            history.put(task.getId(), newNode);
+            this.first.next = newNode;
+        } else {
+            TaskNode<T> currLast = this.last;
+            newNode = new TaskNode<>(task, null, currLast);
+            currLast.next = newNode;
+            this.last = newNode;
         }
+        history.put(task.getId(), newNode);
     }
 
     private void removeNode(TaskNode<T> node) {
-        TaskNode<T> prev = node.prev;
         TaskNode<T> next = node.next;
-        node.prev = null;
-        node.next = null;
-        if (prev != null)
+        TaskNode<T> prev = node.prev;
+        if (prev == null) {
+            this.first = next;
+        } else {
             prev.next = next;
-        if (next != null)
+            node.prev = null;
+        }
+
+        if (next == null) {
+            this.last = prev;
+        } else {
             next.prev = prev;
+            node.next = null;
+        }
         history.remove(node.task.getId());
+        node.task = null;
     }
 }
