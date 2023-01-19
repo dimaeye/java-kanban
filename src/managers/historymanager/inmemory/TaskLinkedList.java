@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-class TaskLinkedList<T extends Task> {
+final class TaskLinkedList<T extends Task> {
 
     private final Map<Integer, TaskNode<T>> history = new HashMap<>();
     private TaskNode<T> first;
@@ -76,7 +76,7 @@ class TaskLinkedList<T extends Task> {
         node.task = null;
     }
 
-    static class TaskNode<T extends Task> {
+    private static class TaskNode<T extends Task> {
         T task;
         TaskNode<T> next;
         TaskNode<T> prev;

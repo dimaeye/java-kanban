@@ -15,32 +15,37 @@ public class Main {
     private static final TaskManager taskManager = Managers.getDefault();
     private static final HistoryManager historyManager = Managers.getDefaultHistory();
 
+    private static final int DELIMITER_LINE_SIZE = 120;
+
     public static void main(String[] args) {
         createTasks();
-        System.out.println("-".repeat(120));
+        System.out.println("-".repeat(DELIMITER_LINE_SIZE));
 
         createEpics();
-        System.out.println("-".repeat(120));
+        System.out.println("-".repeat(DELIMITER_LINE_SIZE));
 
         changeTasksStatus();
-        System.out.println("-".repeat(120));
+        System.out.println("-".repeat(DELIMITER_LINE_SIZE));
 
         changeSubtasksStatusAndCheckEpicStatus();
-        System.out.println("-".repeat(120));
+        System.out.println("-".repeat(DELIMITER_LINE_SIZE));
 
         removeTask();
-        System.out.println("-".repeat(120));
+        System.out.println("-".repeat(DELIMITER_LINE_SIZE));
 
         removeSubtask();
-        System.out.println("-".repeat(120));
+        System.out.println("-".repeat(DELIMITER_LINE_SIZE));
 
         removeEpic();
-        System.out.println("-".repeat(120));
+        System.out.println("-".repeat(DELIMITER_LINE_SIZE));
 
         checkHistory();
-        System.out.println("-".repeat(120));
+        System.out.println("-".repeat(DELIMITER_LINE_SIZE));
 
         removeAll();
+        System.out.println("-".repeat(DELIMITER_LINE_SIZE));
+
+        checkHistoryOrder();
     }
 
     private static void createTasks() {
@@ -91,7 +96,7 @@ public class Main {
         List<Epic> actualEpics = taskManager.getAllEpics();
         actualEpics.forEach(System.out::println);
         actualEpics.forEach(epic -> epic.getAllRelatedTasks().forEach(System.out::println));
-        System.out.println("-".repeat(120));
+        System.out.println("-".repeat(DELIMITER_LINE_SIZE));
 
         List<Subtask> actualSubtasks = taskManager.getAllSubtasks();
         actualSubtasks.forEach(System.out::println);
@@ -154,7 +159,7 @@ public class Main {
         taskManager.removeEpic(epicIdForRemove);
         taskManager.getAllEpics().forEach(System.out::println);
 
-        System.out.println("-".repeat(120));
+        System.out.println("-".repeat(DELIMITER_LINE_SIZE));
         try {
             taskManager.getAllSubtasksOfEpic(epicIdForRemove).forEach(System.out::println);
         } catch (TaskNotFoundException ex) {
@@ -166,7 +171,7 @@ public class Main {
     private static void checkHistory() {
         System.out.println("Текущая история просмотра задач:");
         historyManager.getHistory().forEach(System.out::println);
-        System.out.println("-".repeat(120));
+        System.out.println("-".repeat(DELIMITER_LINE_SIZE));
 
         System.out.println("Проверка обновления журнала история");
         Task anyTask = taskManager.getAllTasks().stream().findAny().orElseThrow();
@@ -180,7 +185,7 @@ public class Main {
             history.forEach(System.out::println);
             System.out.println("Просмотр последний задачи в менеджере истории отображается верно");
         } else
-            System.out.println("Менеджер истории не отобразил полседний просмотр задачи!");
+            System.out.println("Менеджер истории не отобразил последний просмотр задачи!");
     }
 
     private static void removeAll() {
@@ -195,5 +200,101 @@ public class Main {
         System.out.println("Список эпиков до удаления - " + taskManager.getAllEpics());
         taskManager.removeAllEpics();
         System.out.println("Список эпиков после удаления - " + taskManager.getAllEpics());
+    }
+
+    private static void checkHistoryOrder() {
+        if (historyManager.getHistory().size() > 0)
+            removeAll();
+        List<Task> allTasks = new ArrayList<>();
+
+        System.out.println("создаем две задачи");
+        List<Task> tasks = new ArrayList<>();
+        tasks.add(new Task(taskManager.getUniqueTaskId(), "Задача 1", "Описание задачи 1"));
+        tasks.add(new Task(taskManager.getUniqueTaskId(), "Задача 2", "Описание задачи 2"));
+        allTasks.addAll(tasks);
+        for (Task task : tasks)
+            taskManager.createTask(task);
+
+        System.out.println("создаем эпик с тремя подзадачами и эпик без подзадач;");
+        Epic epicWithSubtasks = new Epic(taskManager.getUniqueEpicId(), "Эпик 1", "Описание эпика 1");
+        Epic emptyEpic = new Epic(taskManager.getUniqueEpicId(), "Эпик 2", "Описание эпика 2");
+        List<Subtask> subtasks = new ArrayList<>();
+        subtasks.add(
+                new Subtask(taskManager.getUniqueSubtaskId(),
+                        "Подзадача 1 (Эпик 1)", "Описание подзадачи 1", epicWithSubtasks)
+        );
+        subtasks.add(
+                new Subtask(taskManager.getUniqueSubtaskId(),
+                        "Подзадача 2 (Эпик 1)", "Описание подзадачи 2", epicWithSubtasks)
+        );
+        subtasks.add(
+                new Subtask(taskManager.getUniqueSubtaskId(),
+                        "Подзадача 3 (Эпик 1)", "Описание подзадачи 3", epicWithSubtasks)
+        );
+        taskManager.createEpic(epicWithSubtasks);
+        taskManager.createEpic(emptyEpic);
+        allTasks.add(epicWithSubtasks);
+        allTasks.add(emptyEpic);
+        for (Subtask subtask : subtasks)
+            taskManager.createSubtask(subtask);
+        allTasks.addAll(subtasks);
+
+        System.out.println("-".repeat(DELIMITER_LINE_SIZE));
+        System.out.println("запросим созданные задачи несколько раз в разном порядке");
+        int randomRepeatCount = getRandomNumber();
+        System.out.println("Количество повторных вызовов: " + randomRepeatCount);
+        for (int i = 0; i < randomRepeatCount; i++) {
+            Task currentTask = allTasks.get(getRandomNumber(allTasks.size() - 1));
+            System.out.println("Выполнен просмотр задачи: ");
+            System.out.println(currentTask);
+            System.out.println("-".repeat(DELIMITER_LINE_SIZE));
+            if (currentTask instanceof Epic) {
+                taskManager.getEpic(currentTask.getId());
+                historyManager.getHistory().forEach(System.out::println);
+                System.out.println("-".repeat(DELIMITER_LINE_SIZE));
+            } else if (currentTask instanceof Subtask) {
+                taskManager.getSubtask(currentTask.getId());
+                historyManager.getHistory().forEach(System.out::println);
+                System.out.println("-".repeat(DELIMITER_LINE_SIZE));
+            } else {
+                taskManager.getTask(currentTask.getId());
+                historyManager.getHistory().forEach(System.out::println);
+                System.out.println("-".repeat(DELIMITER_LINE_SIZE));
+            }
+            int lastIndex = historyManager.getHistory().size() - 1;
+            if (historyManager.getHistory().get(lastIndex) != currentTask)
+                throw new RuntimeException("Менеджер истории не отобразил последний просмотр задачи!");
+            if (historyManager.getHistory().stream().map(Task::getId).distinct().count()
+                    != historyManager.getHistory().size())
+                throw new RuntimeException("Менеджер истории содержит дубликаты!");
+        }
+
+        System.out.println("-".repeat(DELIMITER_LINE_SIZE));
+        System.out.println("Удалим задачу и проверим историю");
+        for (Task task : tasks)
+            taskManager.getTask(task.getId());
+        historyManager.getHistory().forEach(System.out::println);
+        taskManager.removeTask(tasks.get(0).getId());
+        System.out.println("-".repeat(DELIMITER_LINE_SIZE));
+        historyManager.getHistory().forEach(System.out::println);
+
+        System.out.println("-".repeat(DELIMITER_LINE_SIZE));
+        System.out.println("Удалим эпик и проверим историю");
+        for (Subtask subtask : subtasks)
+            taskManager.getSubtask(subtask.getId());
+        taskManager.getEpic(epicWithSubtasks.getId());
+        taskManager.getEpic(emptyEpic.getId());
+        historyManager.getHistory().forEach(System.out::println);
+        System.out.println("-".repeat(DELIMITER_LINE_SIZE));
+        taskManager.removeEpic(epicWithSubtasks.getId());
+        historyManager.getHistory().forEach(System.out::println);
+    }
+
+    private static int getRandomNumber() {
+        return (int) ((Math.random() * (10 - 1)) + 5);
+    }
+
+    private static int getRandomNumber(int max) {
+        return (int) (Math.random() * (max - 1));
     }
 }
