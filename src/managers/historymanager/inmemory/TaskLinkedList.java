@@ -13,17 +13,15 @@ final class TaskLinkedList<T extends Task> {
     private TaskNode<T> first;
     private TaskNode<T> last;
 
-    public boolean add(T task) {
+    public void add(T task) {
         linkLast(task);
-        return true;
     }
 
-    public boolean removeTask(int taskId) {
+    public void removeTask(int taskId) {
         if (history.containsKey(taskId)) {
             removeNode(history.get(taskId));
             history.remove(taskId);
         }
-        return true;
     }
 
     public List<T> getTasks() {
@@ -40,18 +38,18 @@ final class TaskLinkedList<T extends Task> {
         if (history.containsKey(task.getId()))
             removeNode(history.get(task.getId()));
         TaskNode<T> newNode;
-        if (this.first == null) {
+        if (first == null) {
             newNode = new TaskNode<>(task, null, null);
-            this.first = newNode;
-        } else if (this.last == null) {
-            newNode = new TaskNode<>(task, null, this.first);
-            this.last = newNode;
-            this.first.next = newNode;
+            first = newNode;
+        } else if (last == null) {
+            newNode = new TaskNode<>(task, null, first);
+            last = newNode;
+            first.next = newNode;
         } else {
-            TaskNode<T> currLast = this.last;
+            TaskNode<T> currLast = last;
             newNode = new TaskNode<>(task, null, currLast);
             currLast.next = newNode;
-            this.last = newNode;
+            last = newNode;
         }
         history.put(task.getId(), newNode);
     }
@@ -60,14 +58,14 @@ final class TaskLinkedList<T extends Task> {
         TaskNode<T> next = node.next;
         TaskNode<T> prev = node.prev;
         if (prev == null) {
-            this.first = next;
+            first = next;
         } else {
             prev.next = next;
             node.prev = null;
         }
 
         if (next == null) {
-            this.last = prev;
+            last = prev;
         } else {
             next.prev = prev;
             node.next = null;
