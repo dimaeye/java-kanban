@@ -60,6 +60,10 @@ public class Task {
         throw new RelatedTaskException();
     }
 
+    public TaskType getTaskType() {
+        return TaskType.TASK;
+    }
+
     @Override
     public String toString() {
         return "Task{" +

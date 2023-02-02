@@ -58,6 +58,11 @@ public class Epic extends Task {
         verifyEpicStatus();
     }
 
+    @Override
+    public TaskType getTaskType() {
+        return TaskType.EPIC;
+    }
+
     protected void verifyEpicStatus() {
         if (subtasks.isEmpty()
                 || subtasks.stream().filter(subtask -> subtask.status == TaskStatus.NEW).count() == subtasks.size())

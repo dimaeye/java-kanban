@@ -181,9 +181,9 @@ public class InMemoryTaskManagerImpl implements TaskManager {
 
     @Override
     public Subtask getSubtask(int id) throws TaskNotFoundException {
-        List<Subtask> alSubtasks = getAllSubtasks();
+        List<Subtask> allSubtasks = getAllSubtasks();
         Optional<Subtask> optSubtask =
-                alSubtasks.stream().filter(subtask -> subtask.getId() == id).findFirst();
+                allSubtasks.stream().filter(subtask -> subtask.getId() == id).findFirst();
         if (optSubtask.isPresent()) {
             Subtask subtask = optSubtask.get();
             historyManager.add(subtask);
