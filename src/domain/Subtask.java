@@ -6,12 +6,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Subtask extends Task {
-    private final Epic epic;
+    private Epic epic;
     public final static int MAX_RELATED_TASKS_SIZE = 1;
 
     public Subtask(int id, String title, String description, Epic epic) {
         super(id, title, description);
         this.epic = epic;
+    }
+
+    public Subtask(int id, String title, String description) {
+        super(id, title, description);
     }
 
     @Override
@@ -27,6 +31,13 @@ public class Subtask extends Task {
         List<Task> result = new ArrayList<>();
         result.add(epic);
         return result;
+    }
+
+    @Override
+    public void addRelatedTask(Task relatedTask) throws RelatedTaskException, IllegalArgumentException {
+        if (!(relatedTask instanceof Epic))
+            throw new IllegalArgumentException("К подзадаче можно привязать только - " + Epic.class.getSimpleName());
+        epic = (Epic) relatedTask;
     }
 
     @Override

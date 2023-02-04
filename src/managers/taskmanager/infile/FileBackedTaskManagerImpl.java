@@ -3,6 +3,7 @@ package managers.taskmanager.infile;
 import domain.Epic;
 import domain.Subtask;
 import domain.Task;
+import domain.TaskType;
 import domain.exceptions.CreateTaskException;
 import managers.historymanager.HistoryManager;
 import managers.taskmanager.TaskManager;
@@ -12,6 +13,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl implements TaskManager {
 
@@ -40,6 +44,8 @@ public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl implement
     }
 
     private void save() { //добавить последний сохраненный  Как сохранить только новое? проходить по идентификатору
+
+
         try (FileWriter fileWriter = new FileWriter(filePath.toFile(), true)) {
             for (Task task : getAllTasks())
                 fileWriter.write(FileBackedTaskMapper.toString(task));
@@ -52,7 +58,26 @@ public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl implement
         }
     }
 
-    private void loadFromFile() {
+
+    private void loadFromFile() throws IOException {
+        List<String> lines = Files.readAllLines(filePath);
+        List<FileBackedTaskMapper.TaskWrapper> taskWrappers = new ArrayList<>(lines.size());
+        for (String line : lines) {
+            taskWrappers.add(FileBackedTaskMapper.fromString(line));
+        }
+        List<Task> tasks = taskWrappers.stream().map(FileBackedTaskMapper.TaskWrapper::getTask).filter(task ->
+                task.getTaskType() == TaskType.TASK
+        ).collect(Collectors.toList());
+        List<Epic> epics = taskWrappers.stream().filter(taskWrapper ->
+                taskWrapper.getTask().getTaskType() == TaskType.EPIC
+        ).map(taskWrapper -> (Epic) taskWrapper.getTask()).collect(Collectors.toList());
+        List<Subtask> subtasks = taskWrappers.stream().filter(taskWrapper ->
+                taskWrapper.getTask().getTaskType() == TaskType.SUBTASK
+        ).map(taskWrapper -> {
+            Subtask subtask = (Subtask) taskWrapper.getTask();
+            subtask.addRelatedTask(epics.get(0));
+            return subtask;
+        }).collect(Collectors.toList()); //переделать на хэшмапы
     }
 
 }
