@@ -22,7 +22,8 @@ public class Subtask extends Task {
     public void setStatus(TaskStatus status) {
         if (this.status != status) {
             super.setStatus(status);
-            epic.verifyEpicStatus();
+            if (epic != null)
+                epic.verifyEpicStatus();
         }
     }
 
@@ -37,7 +38,14 @@ public class Subtask extends Task {
     public void addRelatedTask(Task relatedTask) throws RelatedTaskException, IllegalArgumentException {
         if (!(relatedTask instanceof Epic))
             throw new IllegalArgumentException("К подзадаче можно привязать только - " + Epic.class.getSimpleName());
+        if (epic != null)
+            epic.removeRelatedTask(this.id);
+
         epic = (Epic) relatedTask;
+        boolean currentSubtaskIsPresent = epic.getAllRelatedTasks().stream()
+                .anyMatch(relatedSubtask -> relatedSubtask.getId() == this.id);
+        if (!currentSubtaskIsPresent)
+            epic.addRelatedTask(this);
     }
 
     @Override

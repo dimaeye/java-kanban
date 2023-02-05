@@ -5,6 +5,7 @@ import domain.Subtask;
 import domain.Task;
 import domain.TaskType;
 import domain.exceptions.CreateTaskException;
+import domain.exceptions.ManagerSaveException;
 import managers.historymanager.HistoryManager;
 import managers.taskmanager.TaskManager;
 import managers.taskmanager.inmemory.InMemoryTaskManagerImpl;
@@ -14,12 +15,16 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl implements TaskManager {
 
-    private Path filePath;
+    private final Path filePath;
+    private final List<BufferedOperationTask> bufferedOperationTasks = new LinkedList<BufferedOperationTask>();
 
     public FileBackedTaskManagerImpl(HistoryManager historyManager, String filePath) {
         super(historyManager);
@@ -40,44 +45,86 @@ public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl implement
     @Override
     public void createTask(Task task) throws CreateTaskException {
         super.createTask(task);
+        bufferedOperationTasks.add(new BufferedOperationTask(OperationType.CREATE, task));
         save();
     }
 
     private void save() { //добавить последний сохраненный  Как сохранить только новое? проходить по идентификатору
-
-
         try (FileWriter fileWriter = new FileWriter(filePath.toFile(), true)) {
-            for (Task task : getAllTasks())
-                fileWriter.write(FileBackedTaskMapper.toString(task));
-            for (Subtask subtask : getAllSubtasks())
-                fileWriter.write(FileBackedTaskMapper.toString(subtask));
-            for (Epic epic : getAllEpics())
-                fileWriter.write(FileBackedTaskMapper.toString(epic));
+            for (BufferedOperationTask bufferedOperationTask : bufferedOperationTasks) {
+                if (bufferedOperationTask.operationType == OperationType.CREATE) {
+                    if (bufferedOperationTask.getTask().getTaskType() == TaskType.TASK) {
+                        fileWriter.write(FileBackedTaskMapper.toString(bufferedOperationTask.getTask())); //записать до переноса
+                    }
+                }
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
 
-    private void loadFromFile() throws IOException {
-        List<String> lines = Files.readAllLines(filePath);
-        List<FileBackedTaskMapper.TaskWrapper> taskWrappers = new ArrayList<>(lines.size());
-        for (String line : lines) {
-            taskWrappers.add(FileBackedTaskMapper.fromString(line));
+    private void loadFromFile() {
+        List<String> lines;
+        try {
+            lines = Files.readAllLines(filePath);
+        } catch (IOException e) {
+            throw new ManagerSaveException(e.getMessage());
         }
-        List<Task> tasks = taskWrappers.stream().map(FileBackedTaskMapper.TaskWrapper::getTask).filter(task ->
-                task.getTaskType() == TaskType.TASK
-        ).collect(Collectors.toList());
-        List<Epic> epics = taskWrappers.stream().filter(taskWrapper ->
-                taskWrapper.getTask().getTaskType() == TaskType.EPIC
-        ).map(taskWrapper -> (Epic) taskWrapper.getTask()).collect(Collectors.toList());
-        List<Subtask> subtasks = taskWrappers.stream().filter(taskWrapper ->
-                taskWrapper.getTask().getTaskType() == TaskType.SUBTASK
-        ).map(taskWrapper -> {
-            Subtask subtask = (Subtask) taskWrapper.getTask();
-            subtask.addRelatedTask(epics.get(0));
-            return subtask;
-        }).collect(Collectors.toList()); //переделать на хэшмапы
+
+        List<FileBackedTaskMapper.TaskWrapper> allTaskWrappers = new ArrayList<>(lines.size());
+        int initialUniqueId = 0;
+        for (int i = 1; i < lines.size(); i++) {
+            if (lines.get(i).isEmpty())
+                break;
+            FileBackedTaskMapper.TaskWrapper taskWrapper = FileBackedTaskMapper.fromString(lines.get(i));
+            if (taskWrapper.getTask().getId() > initialUniqueId)
+                initialUniqueId = taskWrapper.getTask().getId();
+            allTaskWrappers.add(taskWrapper);
+        }
+        super.setInitialUniqueId(initialUniqueId);
+
+        allTaskWrappers.stream()
+                .map(FileBackedTaskMapper.TaskWrapper::getTask)
+                .filter(task -> task.getTaskType() == TaskType.TASK)
+                .forEach(super::createTask);
+
+        Map<Integer, Epic> epics = allTaskWrappers.stream()
+                .filter(taskWrapper -> taskWrapper.getTask().getTaskType() == TaskType.EPIC)
+                .map(taskWrapper -> (Epic) taskWrapper.getTask())
+                .collect(Collectors.toMap(Epic::getId, Function.identity()));
+        allTaskWrappers.stream()
+                .filter(taskWrapper -> taskWrapper.getTask().getTaskType() == TaskType.SUBTASK)
+                .forEach(taskWrapper -> {
+                    Subtask subtask = (Subtask) taskWrapper.getTask();
+                    subtask.addRelatedTask(epics.get(taskWrapper.getRelatedTaskId().get()));
+                });
+
+        epics.values().forEach(super::createEpic);
+
     }
 
+    private enum OperationType {
+        CREATE,
+        UPDATE,
+        REMOVE
+    }
+
+    private static class BufferedOperationTask {
+        private final OperationType operationType;
+        private final Task task;
+
+        public BufferedOperationTask(OperationType operationType, Task task) {
+            this.operationType = operationType;
+            this.task = task;
+        }
+
+        public OperationType getOperationType() {
+            return operationType;
+        }
+
+        public Task getTask() {
+            return task;
+        }
+    }
 }

@@ -230,6 +230,10 @@ public class InMemoryTaskManagerImpl implements TaskManager {
         return taskId.incrementAndGet();
     }
 
+    public void setInitialUniqueId(int id) {
+        taskId.set(id);
+    }
+
     private boolean isSubTaskExist(Subtask subtask) {
         try {
             this.getSubtask(subtask.getId());
