@@ -17,10 +17,10 @@ public class FileBackedTaskMapper {
     static <T extends Task> String toString(T task) {
         //id,type,name,status,description,epic
         if (task instanceof Subtask) {
-            return String.format("%d,%s,%s,%s,%s,%s%n", task.getId(), task.getTaskType(), task.getTitle(),
+            return String.format("%d,%s,%s,%s,%s,%s", task.getId(), task.getTaskType(), task.getTitle(),
                     task.getStatus(), task.getDescription(), task.getAllRelatedTasks().get(0).getId());
         } else
-            return String.format("%d,%s,%s,%s,%s,%n", task.getId(), task.getTaskType(), task.getTitle(),
+            return String.format("%d,%s,%s,%s,%s,", task.getId(), task.getTaskType(), task.getTitle(),
                     task.getStatus(), task.getDescription());
     }
 
@@ -57,6 +57,10 @@ public class FileBackedTaskMapper {
                 throw new RuntimeException("Неизвестный тип задачи");
         }
         return taskWrapper;
+    }
+
+    static int getTaskIdFromString(String line) {
+        return Integer.parseInt(line.substring(0, line.indexOf(ARG_SEPARATOR)));
     }
 
     static class TaskWrapper {
