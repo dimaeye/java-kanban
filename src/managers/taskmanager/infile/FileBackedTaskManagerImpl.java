@@ -20,15 +20,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl implements TaskManager {
 
     private final Path filePath;
-    private final List<BufferedOperationTask> bufferedOperationTasks = new LinkedList<BufferedOperationTask>();
+    private final List<BufferedOperationTask> bufferedOperationTasks = new LinkedList();
+
+    private final HistoryManager historyManager;
 
     public FileBackedTaskManagerImpl(HistoryManager historyManager, String filePath) {
         super(historyManager);
         this.filePath = Path.of(filePath);
+        this.historyManager = historyManager;
         if (Files.exists(this.filePath)) {
             loadFromFile();
         } else
@@ -139,12 +143,11 @@ public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl implement
     }
 
     private void save() {
-        for (int i = 0; i < bufferedOperationTasks.size(); i++) {
-            BufferedOperationTask bufferedOperationTask = bufferedOperationTasks.get(i);
+        for (BufferedOperationTask bufferedOperationTask : bufferedOperationTasks) {
             switch (bufferedOperationTask.task.getTaskType()) {
                 case TASK:
                     updateLine(bufferedOperationTask.getTask(), bufferedOperationTask.getOperationType());
-                    bufferedOperationTasks.remove(i);
+                    bufferedOperationTasks.remove(bufferedOperationTask);
                     break;
                 case EPIC:
                     Epic epic = (Epic) bufferedOperationTask.task;
@@ -156,7 +159,7 @@ public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl implement
                         );
                     } else
                         updateLine(epic, OperationType.UPDATE);
-                    bufferedOperationTasks.remove(i);
+                    bufferedOperationTasks.remove(bufferedOperationTask);
                     break;
                 case SUBTASK:
                     Subtask subtask = (Subtask) bufferedOperationTask.task;
@@ -164,7 +167,7 @@ public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl implement
                     if (relatedEpic != null)
                         updateLine(relatedEpic, OperationType.UPDATE);
                     updateLine(subtask, bufferedOperationTask.getOperationType());
-                    bufferedOperationTasks.remove(i);
+                    bufferedOperationTasks.remove(bufferedOperationTask);
                     break;
             }
 
@@ -264,6 +267,26 @@ public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl implement
                 });
 
         epics.values().forEach(super::createEpic);
+    }
+
+    private void loadHistoryFromFile() {
+        List<Task> allTasks = super.getAllTasks();
+        List<Epic> allEpics = super.getAllEpics();
+        List<Subtask> allSubtasks = super.getAllSubtasks();
+        int skipLinesCount = allTasks.size() + allEpics.size() + allSubtasks.size() + 2; //2 is header line plus delimiter
+        try {
+            String line = Files.lines(filePath).skip(skipLinesCount).findFirst().get();
+            List<Integer> taskIds = FileBackedHistoryMapper.historyFromString(line);
+            Stream<? extends Task> streamTasks = Stream.of(allTasks, allEpics, allSubtasks);
+
+//                                .filter(task -> taskIds.contains(task.))
+
+//                    .forEach(historyManager::add);
+
+
+        } catch (IOException e) {
+            throw new ManagerSaveException(e.getMessage());
+        }
 
     }
 
