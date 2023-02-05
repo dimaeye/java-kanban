@@ -14,10 +14,7 @@ import managers.taskmanager.inmemory.InMemoryTaskManagerImpl;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -25,7 +22,7 @@ import java.util.stream.Stream;
 public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl implements TaskManager {
 
     private final Path filePath;
-    private final List<BufferedOperationTask> bufferedOperationTasks = new LinkedList();
+    private final List<BufferedOperationTask> bufferedOperationTasks = new LinkedList<>();
 
     private final HistoryManager historyManager;
 
@@ -55,6 +52,13 @@ public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl implement
         );
         super.removeAllTasks();
         save();
+    }
+
+    @Override
+    public Task getTask(int id) throws TaskNotFoundException {
+        Task task = super.getTask(id);
+        bufferedOperationTasks.add(new BufferedOperationTask(OperationType.GET, task));
+        return task;
     }
 
     @Override
@@ -90,6 +94,13 @@ public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl implement
     }
 
     @Override
+    public Epic getEpic(int id) throws TaskNotFoundException {
+        Epic epic = super.getEpic(id);
+        bufferedOperationTasks.add(new BufferedOperationTask(OperationType.GET, epic));
+        return epic;
+    }
+
+    @Override
     public void createEpic(Epic epic) throws CreateTaskException {
         super.createEpic(epic);
         bufferedOperationTasks.add(new BufferedOperationTask(OperationType.CREATE, epic));
@@ -122,6 +133,13 @@ public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl implement
     }
 
     @Override
+    public Subtask getSubtask(int id) throws TaskNotFoundException {
+        Subtask subtask = super.getSubtask(id);
+        bufferedOperationTasks.add(new BufferedOperationTask(OperationType.GET, subtask));
+        return super.getSubtask(id);
+    }
+
+    @Override
     public void createSubtask(Subtask subtask) throws CreateTaskException {
         super.createSubtask(subtask);
         bufferedOperationTasks.add(new BufferedOperationTask(OperationType.CREATE, subtask));
@@ -147,7 +165,6 @@ public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl implement
             switch (bufferedOperationTask.task.getTaskType()) {
                 case TASK:
                     updateLine(bufferedOperationTask.getTask(), bufferedOperationTask.getOperationType());
-                    bufferedOperationTasks.remove(bufferedOperationTask);
                     break;
                 case EPIC:
                     Epic epic = (Epic) bufferedOperationTask.task;
@@ -158,20 +175,22 @@ public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl implement
                                 updateLine(subtask, bufferedOperationTask.getOperationType())
                         );
                     } else
-                        updateLine(epic, OperationType.UPDATE);
-                    bufferedOperationTasks.remove(bufferedOperationTask);
+                        updateLine(epic, bufferedOperationTask.operationType);
                     break;
                 case SUBTASK:
                     Subtask subtask = (Subtask) bufferedOperationTask.task;
-                    Epic relatedEpic = (Epic) subtask.getAllRelatedTasks().get(0);
-                    if (relatedEpic != null)
-                        updateLine(relatedEpic, OperationType.UPDATE);
-                    updateLine(subtask, bufferedOperationTask.getOperationType());
-                    bufferedOperationTasks.remove(bufferedOperationTask);
+                    if (bufferedOperationTask.operationType == OperationType.GET)
+                        updateLine(subtask, OperationType.GET);
+                    else {
+                        Epic relatedEpic = (Epic) subtask.getAllRelatedTasks().get(0);
+                        if (relatedEpic != null)
+                            updateLine(relatedEpic, OperationType.UPDATE);
+                        updateLine(subtask, bufferedOperationTask.getOperationType());
+                    }
                     break;
             }
-
         }
+        bufferedOperationTasks.clear();
     }
 
     private <T extends Task> void updateLine(T task, OperationType operationType) {
@@ -191,14 +210,28 @@ public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl implement
                 fileWriter.write(fileReader.readLine());
                 fileWriter.newLine();
             }
+            boolean isFirstLine = true; //для пустого файла
             while (fileReader.ready()) {
                 String line = fileReader.readLine();
-                if (!fileReader.ready()) {
+                if (!fileReader.ready() && !isFirstLine) { //TODO Вынести за цикл
                     fileWriter.newLine();
-                    fileWriter.write(line);
+                    if (operationType == OperationType.GET || operationType == OperationType.REMOVE) {
+                        String historyString = FileBackedHistoryMapper.historyToString(historyManager);
+                        if (!historyString.isBlank())
+                            fileWriter.write(historyString);
+                        else
+                            fileWriter.newLine();
+                    } else
+                        fileWriter.write(line);
                     break;
                 }
                 switch (operationType) {
+                    case GET:
+                        if (!line.isBlank()) {
+                            fileWriter.write(line);
+                            fileWriter.newLine();
+                        }
+                        break;
                     case CREATE:
                         if (line.isBlank()) {
                             fileWriter.write(FileBackedTaskMapper.toString(task));
@@ -222,6 +255,7 @@ public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl implement
                         }
                         break;
                 }
+                isFirstLine = false;
             }
         } catch (IOException e) {
             throw new ManagerSaveException(e.getMessage());
@@ -267,6 +301,7 @@ public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl implement
                 });
 
         epics.values().forEach(super::createEpic);
+        loadHistoryFromFile();
     }
 
     private void loadHistoryFromFile() {
@@ -274,16 +309,14 @@ public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl implement
         List<Epic> allEpics = super.getAllEpics();
         List<Subtask> allSubtasks = super.getAllSubtasks();
         int skipLinesCount = allTasks.size() + allEpics.size() + allSubtasks.size() + 2; //2 is header line plus delimiter
-        try {
-            String line = Files.lines(filePath).skip(skipLinesCount).findFirst().get();
+
+        try (Stream<String> lines = Files.lines(filePath)) {
+            String line = lines.skip(skipLinesCount).findFirst().get();
             List<Integer> taskIds = FileBackedHistoryMapper.historyFromString(line);
-            Stream<? extends Task> streamTasks = Stream.of(allTasks, allEpics, allSubtasks);
-
-//                                .filter(task -> taskIds.contains(task.))
-
-//                    .forEach(historyManager::add);
-
-
+            Stream.of(allTasks, allEpics, allSubtasks)
+                    .flatMap(Collection::stream)
+                    .filter(task -> taskIds.contains(task.getId()))
+                    .forEach(historyManager::add);
         } catch (IOException e) {
             throw new ManagerSaveException(e.getMessage());
         }
@@ -291,6 +324,7 @@ public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl implement
     }
 
     private enum OperationType {
+        GET,
         CREATE,
         UPDATE,
         REMOVE
