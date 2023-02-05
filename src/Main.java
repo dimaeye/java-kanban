@@ -21,7 +21,7 @@ public class Main {
         createTasks();
         System.out.println("-".repeat(DELIMITER_LINE_SIZE));
 
-      /*  createEpics();
+        createEpics();
         System.out.println("-".repeat(DELIMITER_LINE_SIZE));
 
         changeTasksStatus();
@@ -45,7 +45,7 @@ public class Main {
         removeAll();
         System.out.println("-".repeat(DELIMITER_LINE_SIZE));
 
-        checkHistoryOrder();*/
+        checkHistoryOrder();
     }
 
     private static void createTasks() {

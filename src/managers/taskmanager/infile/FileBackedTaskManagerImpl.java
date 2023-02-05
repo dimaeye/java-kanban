@@ -6,6 +6,7 @@ import domain.Task;
 import domain.TaskType;
 import domain.exceptions.CreateTaskException;
 import domain.exceptions.ManagerSaveException;
+import domain.exceptions.TaskNotFoundException;
 import managers.historymanager.HistoryManager;
 import managers.taskmanager.TaskManager;
 import managers.taskmanager.inmemory.InMemoryTaskManagerImpl;
@@ -42,9 +43,98 @@ public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl implement
     }
 
     @Override
+    public void removeAllTasks() {
+        bufferedOperationTasks.addAll(
+                super.getAllTasks().stream()
+                        .map(task -> new BufferedOperationTask(OperationType.REMOVE, task))
+                        .collect(Collectors.toList())
+        );
+        super.removeAllTasks();
+        save();
+    }
+
+    @Override
     public void createTask(Task task) throws CreateTaskException {
         super.createTask(task);
         bufferedOperationTasks.add(new BufferedOperationTask(OperationType.CREATE, task));
+        save();
+    }
+
+    @Override
+    public void updateTask(Task task) throws TaskNotFoundException {
+        super.updateTask(task);
+        bufferedOperationTasks.add(new BufferedOperationTask(OperationType.UPDATE, task));
+        save();
+    }
+
+    @Override
+    public void removeTask(int id) throws TaskNotFoundException {
+        bufferedOperationTasks.add(new BufferedOperationTask(OperationType.REMOVE, super.getTask(id)));
+        super.removeTask(id);
+        save();
+    }
+
+    @Override
+    public void removeAllEpics() {
+        bufferedOperationTasks.addAll(
+                super.getAllEpics().stream()
+                        .map(epic -> new BufferedOperationTask(OperationType.REMOVE, epic))
+                        .collect(Collectors.toList())
+        );
+        super.removeAllEpics();
+        save();
+    }
+
+    @Override
+    public void createEpic(Epic epic) throws CreateTaskException {
+        super.createEpic(epic);
+        bufferedOperationTasks.add(new BufferedOperationTask(OperationType.CREATE, epic));
+        save();
+    }
+
+    @Override
+    public void updateEpic(Epic epic) throws TaskNotFoundException {
+        bufferedOperationTasks.add(new BufferedOperationTask(OperationType.UPDATE, epic));
+        super.updateEpic(epic);
+        save();
+    }
+
+    @Override
+    public void removeEpic(int id) throws TaskNotFoundException {
+        bufferedOperationTasks.add(new BufferedOperationTask(OperationType.REMOVE, super.getEpic(id)));
+        super.removeEpic(id);
+        save();
+    }
+
+    @Override
+    public void removeAllSubtasks() {
+        bufferedOperationTasks.addAll(
+                super.getAllSubtasks().stream()
+                        .map(subtask -> new BufferedOperationTask(OperationType.REMOVE, subtask))
+                        .collect(Collectors.toList())
+        );
+        super.removeAllSubtasks();
+        save();
+    }
+
+    @Override
+    public void createSubtask(Subtask subtask) throws CreateTaskException {
+        super.createSubtask(subtask);
+        bufferedOperationTasks.add(new BufferedOperationTask(OperationType.CREATE, subtask));
+        save();
+    }
+
+    @Override
+    public void updateSubtask(Subtask subtask) throws TaskNotFoundException {
+        super.updateSubtask(subtask);
+        bufferedOperationTasks.add(new BufferedOperationTask(OperationType.UPDATE, subtask));
+        save();
+    }
+
+    @Override
+    public void removeSubtask(int id) throws TaskNotFoundException {
+        bufferedOperationTasks.add(new BufferedOperationTask(OperationType.REMOVE, super.getSubtask(id)));
+        super.removeSubtask(id);
         save();
     }
 
@@ -53,32 +143,31 @@ public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl implement
             BufferedOperationTask bufferedOperationTask = bufferedOperationTasks.get(i);
             switch (bufferedOperationTask.task.getTaskType()) {
                 case TASK:
-                    saveTask(bufferedOperationTask.getTask(), bufferedOperationTask.getOperationType());
+                    updateLine(bufferedOperationTask.getTask(), bufferedOperationTask.getOperationType());
                     bufferedOperationTasks.remove(i);
                     break;
                 case EPIC:
-                    throw new RuntimeException();
+                    Epic epic = (Epic) bufferedOperationTask.task;
+                    if (bufferedOperationTask.getOperationType() == OperationType.CREATE
+                            || bufferedOperationTask.getOperationType() == OperationType.REMOVE) {
+                        updateLine(epic, bufferedOperationTask.getOperationType());
+                        epic.getAllRelatedTasks().forEach(subtask ->
+                                updateLine(subtask, bufferedOperationTask.getOperationType())
+                        );
+                    } else
+                        updateLine(epic, OperationType.UPDATE);
+                    bufferedOperationTasks.remove(i);
+                    break;
                 case SUBTASK:
-                    throw new RuntimeException();
+                    Subtask subtask = (Subtask) bufferedOperationTask.task;
+                    Epic relatedEpic = (Epic) subtask.getAllRelatedTasks().get(0);
+                    if (relatedEpic != null)
+                        updateLine(relatedEpic, OperationType.UPDATE);
+                    updateLine(subtask, bufferedOperationTask.getOperationType());
+                    bufferedOperationTasks.remove(i);
+                    break;
             }
-        }
-    }
 
-    private void saveTask(Task task, OperationType operationType) {
-        updateLine(task, operationType);
-    }
-
-    private void saveEpic(Epic epic, OperationType operationType) {
-        switch (operationType) {
-            case CREATE:
-                updateLine(epic, OperationType.CREATE);
-                epic.getAllRelatedTasks().forEach(subtask -> updateLine(subtask, OperationType.CREATE));
-                break;
-            case UPDATE:
-                updateLine(epic, OperationType.UPDATE);
-            case REMOVE:
-                updateLine(epic, OperationType.REMOVE);
-                epic.getAllRelatedTasks().forEach(subtask -> updateLine(subtask, OperationType.REMOVE));
         }
     }
 
@@ -112,20 +201,24 @@ public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl implement
                             fileWriter.write(FileBackedTaskMapper.toString(task));
                         } else
                             fileWriter.write(line);
+                        fileWriter.newLine();
                         break;
                     case UPDATE:
-                        if (!line.isBlank())
+                        if (!line.isBlank()) {
                             if (task.getId() == FileBackedTaskMapper.getTaskIdFromString(line))
                                 fileWriter.write(FileBackedTaskMapper.toString(task));
                             else
                                 fileWriter.write(line);
+                            fileWriter.newLine();
+                        }
                         break;
                     case REMOVE:
-                        if (!line.isBlank() && task.getId() != FileBackedTaskMapper.getTaskIdFromString(line))
+                        if (!line.isBlank() && task.getId() != FileBackedTaskMapper.getTaskIdFromString(line)) {
                             fileWriter.write(line);
+                            fileWriter.newLine();
+                        }
                         break;
                 }
-                fileWriter.newLine();
             }
         } catch (IOException e) {
             throw new ManagerSaveException(e.getMessage());
