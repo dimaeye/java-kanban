@@ -8,19 +8,16 @@ import domain.exceptions.TaskNotFoundException;
 import managers.historymanager.HistoryManager;
 import managers.taskmanager.TaskManager;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class InMemoryTaskManagerImpl implements TaskManager {
 
     private static final AtomicInteger taskId = new AtomicInteger(0);
 
-    private final Map<Integer, Task> tasks = InMemoryDataStore.tasks;
+    private final Map<Integer, Task> tasks = new HashMap<>();
 
-    private final Map<Integer, Epic> epics = InMemoryDataStore.epics;
+    private final Map<Integer, Epic> epics = new HashMap<>();
 
     private final HistoryManager historyManager;
 

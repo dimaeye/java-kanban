@@ -36,7 +36,7 @@ public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl implement
             try {
                 Files.createFile(this.filePath);
                 try (FileWriter fileWriter = new FileWriter(this.filePath.toFile())) {
-                    fileWriter.write("id,type,name,status,description,epic" + "\n");
+                    fileWriter.write("id,type,name,status,description,epic\n\n");
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -210,10 +210,9 @@ public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl implement
                 fileWriter.write(fileReader.readLine());
                 fileWriter.newLine();
             }
-            boolean isFirstLine = true; //для пустого файла
             while (fileReader.ready()) {
                 String line = fileReader.readLine();
-                if (!fileReader.ready() && !isFirstLine) { //TODO Вынести за цикл
+                if (!fileReader.ready()) {
                     fileWriter.newLine();
                     if (operationType == OperationType.GET || operationType == OperationType.REMOVE) {
                         String historyString = FileBackedHistoryMapper.historyToString(historyManager);
@@ -221,7 +220,9 @@ public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl implement
                             fileWriter.write(historyString);
                         else
                             fileWriter.newLine();
-                    } else
+                    } else if (line.isBlank())
+                        fileWriter.newLine();
+                    else
                         fileWriter.write(line);
                     break;
                 }
@@ -255,13 +256,12 @@ public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl implement
                         }
                         break;
                 }
-                isFirstLine = false;
             }
         } catch (IOException e) {
             throw new ManagerSaveException(e.getMessage());
         }
         if (!currentFile.delete() || !tmpFile.renameTo(currentFile))
-            throw new ManagerSaveException("Не удалось обновить в файл " + currentFile.getName());
+            throw new ManagerSaveException("Не удалось обновить файл " + currentFile.getName());
     }
 
     private void loadFromFile() {
