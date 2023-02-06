@@ -5,7 +5,9 @@ import domain.TaskStatus;
 import domain.exceptions.TaskNotFoundException;
 import managers.Managers;
 import managers.historymanager.HistoryManager;
+import managers.historymanager.inmemory.InMemoryHistoryManagerImpl;
 import managers.taskmanager.TaskManager;
+import managers.taskmanager.infile.FileBackedTaskManagerImpl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,36 +18,41 @@ public class Main {
     private static final HistoryManager historyManager = Managers.getDefaultHistory();
 
     private static final int DELIMITER_LINE_SIZE = 120;
+    private static final String DELIMITER = "-";
 
     public static void main(String[] args) {
         createTasks();
-        System.out.println("-".repeat(DELIMITER_LINE_SIZE));
+        System.out.println(DELIMITER.repeat(DELIMITER_LINE_SIZE));
 
         createEpics();
-        System.out.println("-".repeat(DELIMITER_LINE_SIZE));
+        System.out.println(DELIMITER.repeat(DELIMITER_LINE_SIZE));
 
         changeTasksStatus();
-        System.out.println("-".repeat(DELIMITER_LINE_SIZE));
+        System.out.println(DELIMITER.repeat(DELIMITER_LINE_SIZE));
 
         changeSubtasksStatusAndCheckEpicStatus();
-        System.out.println("-".repeat(DELIMITER_LINE_SIZE));
+        System.out.println(DELIMITER.repeat(DELIMITER_LINE_SIZE));
 
         removeTask();
-        System.out.println("-".repeat(DELIMITER_LINE_SIZE));
+        System.out.println(DELIMITER.repeat(DELIMITER_LINE_SIZE));
 
         removeSubtask();
-        System.out.println("-".repeat(DELIMITER_LINE_SIZE));
+        System.out.println(DELIMITER.repeat(DELIMITER_LINE_SIZE));
 
         removeEpic();
-        System.out.println("-".repeat(DELIMITER_LINE_SIZE));
+        System.out.println(DELIMITER.repeat(DELIMITER_LINE_SIZE));
 
         checkHistory();
-        System.out.println("-".repeat(DELIMITER_LINE_SIZE));
+        System.out.println(DELIMITER.repeat(DELIMITER_LINE_SIZE));
 
         removeAll();
-        System.out.println("-".repeat(DELIMITER_LINE_SIZE));
+        System.out.println(DELIMITER.repeat(DELIMITER_LINE_SIZE));
 
         checkHistoryOrder();
+        System.out.println(DELIMITER.repeat(DELIMITER_LINE_SIZE));
+
+        System.out.println("Проверка восстановления задач и истории просмотров из файла");
+        assertEqualsManagers();
     }
 
     private static void createTasks() {
@@ -96,7 +103,7 @@ public class Main {
         List<Epic> actualEpics = taskManager.getAllEpics();
         actualEpics.forEach(System.out::println);
         actualEpics.forEach(epic -> epic.getAllRelatedTasks().forEach(System.out::println));
-        System.out.println("-".repeat(DELIMITER_LINE_SIZE));
+        System.out.println(DELIMITER.repeat(DELIMITER_LINE_SIZE));
 
         List<Subtask> actualSubtasks = taskManager.getAllSubtasks();
         actualSubtasks.forEach(System.out::println);
@@ -159,7 +166,7 @@ public class Main {
         taskManager.removeEpic(epicIdForRemove);
         taskManager.getAllEpics().forEach(System.out::println);
 
-        System.out.println("-".repeat(DELIMITER_LINE_SIZE));
+        System.out.println(DELIMITER.repeat(DELIMITER_LINE_SIZE));
         try {
             taskManager.getAllSubtasksOfEpic(epicIdForRemove).forEach(System.out::println);
         } catch (TaskNotFoundException ex) {
@@ -171,7 +178,7 @@ public class Main {
     private static void checkHistory() {
         System.out.println("Текущая история просмотра задач:");
         historyManager.getHistory().forEach(System.out::println);
-        System.out.println("-".repeat(DELIMITER_LINE_SIZE));
+        System.out.println(DELIMITER.repeat(DELIMITER_LINE_SIZE));
 
         System.out.println("Проверка обновления журнала история");
         Task anyTask = taskManager.getAllTasks().stream().findAny().orElseThrow();
@@ -239,7 +246,7 @@ public class Main {
             taskManager.createSubtask(subtask);
         allTasks.addAll(subtasks);
 
-        System.out.println("-".repeat(DELIMITER_LINE_SIZE));
+        System.out.println(DELIMITER.repeat(DELIMITER_LINE_SIZE));
         System.out.println("запросим созданные задачи несколько раз в разном порядке");
         int randomRepeatCount = getRandomNumber();
         System.out.println("Количество повторных вызовов: " + randomRepeatCount);
@@ -247,19 +254,19 @@ public class Main {
             Task currentTask = allTasks.get(getRandomNumber(allTasks.size() - 1));
             System.out.println("Выполнен просмотр задачи: ");
             System.out.println(currentTask);
-            System.out.println("-".repeat(DELIMITER_LINE_SIZE));
+            System.out.println(DELIMITER.repeat(DELIMITER_LINE_SIZE));
             if (currentTask instanceof Epic) {
                 taskManager.getEpic(currentTask.getId());
                 historyManager.getHistory().forEach(System.out::println);
-                System.out.println("-".repeat(DELIMITER_LINE_SIZE));
+                System.out.println(DELIMITER.repeat(DELIMITER_LINE_SIZE));
             } else if (currentTask instanceof Subtask) {
                 taskManager.getSubtask(currentTask.getId());
                 historyManager.getHistory().forEach(System.out::println);
-                System.out.println("-".repeat(DELIMITER_LINE_SIZE));
+                System.out.println(DELIMITER.repeat(DELIMITER_LINE_SIZE));
             } else {
                 taskManager.getTask(currentTask.getId());
                 historyManager.getHistory().forEach(System.out::println);
-                System.out.println("-".repeat(DELIMITER_LINE_SIZE));
+                System.out.println(DELIMITER.repeat(DELIMITER_LINE_SIZE));
             }
             int lastIndex = historyManager.getHistory().size() - 1;
             if (historyManager.getHistory().get(lastIndex) != currentTask)
@@ -269,25 +276,51 @@ public class Main {
                 throw new RuntimeException("Менеджер истории содержит дубликаты!");
         }
 
-        System.out.println("-".repeat(DELIMITER_LINE_SIZE));
+        System.out.println(DELIMITER.repeat(DELIMITER_LINE_SIZE));
         System.out.println("Удалим задачу и проверим историю");
         for (Task task : tasks)
             taskManager.getTask(task.getId());
         historyManager.getHistory().forEach(System.out::println);
         taskManager.removeTask(tasks.get(0).getId());
-        System.out.println("-".repeat(DELIMITER_LINE_SIZE));
+        System.out.println(DELIMITER.repeat(DELIMITER_LINE_SIZE));
         historyManager.getHistory().forEach(System.out::println);
 
-        System.out.println("-".repeat(DELIMITER_LINE_SIZE));
+        System.out.println(DELIMITER.repeat(DELIMITER_LINE_SIZE));
         System.out.println("Удалим эпик и проверим историю");
         for (Subtask subtask : subtasks)
             taskManager.getSubtask(subtask.getId());
         taskManager.getEpic(epicWithSubtasks.getId());
         taskManager.getEpic(emptyEpic.getId());
         historyManager.getHistory().forEach(System.out::println);
-        System.out.println("-".repeat(DELIMITER_LINE_SIZE));
+        System.out.println(DELIMITER.repeat(DELIMITER_LINE_SIZE));
         taskManager.removeEpic(epicWithSubtasks.getId());
         historyManager.getHistory().forEach(System.out::println);
+    }
+
+    private static void assertEqualsManagers() {
+        HistoryManager newHistoryManager = new InMemoryHistoryManagerImpl();
+        TaskManager newTaskManager = new FileBackedTaskManagerImpl(newHistoryManager, "/tmp/tasks.csv");
+
+        if (taskManager.getAllTasks().equals(newTaskManager.getAllTasks()))
+            System.out.println("Задачи из файла восстановлены верно");
+        else
+            throw new RuntimeException("Задачи из файла восстановлены некорректно!");
+
+        if (taskManager.getAllEpics().equals(newTaskManager.getAllEpics()))
+            System.out.println("Эпики из файла восстановлены верно");
+        else
+            throw new RuntimeException("Эпики из файла восстановлены некорректно!");
+
+        if (taskManager.getAllSubtasks().equals(newTaskManager.getAllSubtasks()))
+            System.out.println("Подзадачи из файла восстановлены верно");
+        else
+            throw new RuntimeException("Подзадачи из файла восстановлены некорректно!");
+
+        if (historyManager.getHistory().equals(newHistoryManager.getHistory()))
+            System.out.println("История просмотров восстановлена верно");
+        else
+            throw new RuntimeException("История просмотров восстановлена некорректно!");
+
     }
 
     private static int getRandomNumber() {

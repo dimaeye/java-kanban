@@ -8,19 +8,16 @@ import domain.exceptions.TaskNotFoundException;
 import managers.historymanager.HistoryManager;
 import managers.taskmanager.TaskManager;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class InMemoryTaskManagerImpl implements TaskManager {
 
     private static final AtomicInteger taskId = new AtomicInteger(0);
 
-    private final Map<Integer, Task> tasks = InMemoryDataStore.tasks;
+    private final Map<Integer, Task> tasks = new HashMap<>();
 
-    private final Map<Integer, Epic> epics = InMemoryDataStore.epics;
+    private final Map<Integer, Epic> epics = new HashMap<>();
 
     private final HistoryManager historyManager;
 
@@ -181,9 +178,9 @@ public class InMemoryTaskManagerImpl implements TaskManager {
 
     @Override
     public Subtask getSubtask(int id) throws TaskNotFoundException {
-        List<Subtask> alSubtasks = getAllSubtasks();
+        List<Subtask> allSubtasks = getAllSubtasks();
         Optional<Subtask> optSubtask =
-                alSubtasks.stream().filter(subtask -> subtask.getId() == id).findFirst();
+                allSubtasks.stream().filter(subtask -> subtask.getId() == id).findFirst();
         if (optSubtask.isPresent()) {
             Subtask subtask = optSubtask.get();
             historyManager.add(subtask);
@@ -228,6 +225,10 @@ public class InMemoryTaskManagerImpl implements TaskManager {
     @Override
     public int getUniqueSubtaskId() {
         return taskId.incrementAndGet();
+    }
+
+    public void setInitialUniqueId(int id) {
+        taskId.set(id);
     }
 
     private boolean isSubTaskExist(Subtask subtask) {

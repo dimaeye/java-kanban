@@ -3,6 +3,7 @@ package domain;
 import domain.exceptions.RelatedTaskException;
 
 import java.util.List;
+import java.util.Objects;
 
 public class Task {
     protected int id;
@@ -60,6 +61,10 @@ public class Task {
         throw new RelatedTaskException();
     }
 
+    public TaskType getTaskType() {
+        return TaskType.TASK;
+    }
+
     @Override
     public String toString() {
         return "Task{" +
@@ -68,5 +73,19 @@ public class Task {
                 ", description='" + description + '\'' +
                 ", status=" + status +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Task task = (Task) o;
+        return id == task.id && title.equals(task.title)
+                && description.equals(task.description) && status == task.status;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, title, description, status);
     }
 }
