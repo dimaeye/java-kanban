@@ -19,7 +19,7 @@ public class InMemoryTaskManagerImpl implements TaskManager {
 
     private final Map<Integer, Epic> epics = new HashMap<>();
 
-    private final HistoryManager historyManager;
+    protected final HistoryManager historyManager;
 
     public InMemoryTaskManagerImpl(HistoryManager historyManager) {
         this.historyManager = historyManager;

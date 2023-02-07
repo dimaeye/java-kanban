@@ -6,8 +6,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class FileBackedHistoryMapper {
+class FileBackedHistoryMapper {
     private static final char ARG_SEPARATOR = ',';
+
+    private FileBackedHistoryMapper() {
+    }
 
     static String historyToString(HistoryManager historyManager) {
         return historyManager.getHistory().stream()

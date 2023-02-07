@@ -4,8 +4,8 @@ import domain.*;
 
 import java.util.Optional;
 
-public class FileBackedTaskMapper {
-    //csv columns id,type,name,status,description,epic
+class FileBackedTaskMapper {
+    static final String HEADER_OF_FILE = "id,type,name,status,description,epic";
     private static final int ID_COL_INDEX = 0;
     private static final int TASK_TYPE_COL_INDEX = 1;
     private static final int NAME_COL_INDEX = 2;
@@ -13,6 +13,9 @@ public class FileBackedTaskMapper {
     private static final int DESCRIPTION_COL_INDEX = 4;
     private static final int EPIC_ID_COL_INDEX = 5;
     private static final char ARG_SEPARATOR = ',';
+
+    private FileBackedTaskMapper() {
+    }
 
     static <T extends Task> String toString(T task) {
         //id,type,name,status,description,epic
