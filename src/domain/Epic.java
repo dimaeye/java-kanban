@@ -49,6 +49,7 @@ public class Epic extends Task {
             }
         }
         if (indexToRemove >= 0) {
+            refreshTimesByRemovedRelatedTask(subtasks.get(indexToRemove));
             subtasks.remove(indexToRemove);
             verifyEpicStatus();
         }
@@ -120,7 +121,7 @@ public class Epic extends Task {
 
     private void refreshTimesByRemovedRelatedTask(Subtask relatedTask) {
         duration -= relatedTask.duration;
-        if (startTime.equals(relatedTask.startTime)) {
+        if (startTime != null && startTime.equals(relatedTask.startTime)) {
             //задать новое время startTime
             subtasks.stream()
                     .filter(subtask -> subtask.startTime != null)
@@ -129,7 +130,7 @@ public class Epic extends Task {
 
 
         }
-        if (endTime.equals(relatedTask.getEndTime())) {
+        if (endTime != null && endTime.equals(relatedTask.getEndTime())) {
             //задать новое время endTime
             subtasks.stream()
                     .filter(subtask -> subtask.startTime != null)

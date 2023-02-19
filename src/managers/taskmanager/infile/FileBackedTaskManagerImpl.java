@@ -4,10 +4,7 @@ import domain.Epic;
 import domain.Subtask;
 import domain.Task;
 import domain.TaskType;
-import domain.exceptions.CreateTaskException;
-import domain.exceptions.ManagerLoadException;
-import domain.exceptions.ManagerSaveException;
-import domain.exceptions.TaskNotFoundException;
+import domain.exceptions.*;
 import managers.historymanager.HistoryManager;
 import managers.taskmanager.inmemory.InMemoryTaskManagerImpl;
 
@@ -58,13 +55,13 @@ public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl {
     }
 
     @Override
-    public void createTask(Task task) throws CreateTaskException {
+    public void createTask(Task task) throws CreateTaskException, OverlappingTaskTimeException {
         super.createTask(task);
         save();
     }
 
     @Override
-    public void updateTask(Task task) throws TaskNotFoundException {
+    public void updateTask(Task task) throws TaskNotFoundException, OverlappingTaskTimeException {
         super.updateTask(task);
         save();
     }
@@ -120,13 +117,13 @@ public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl {
     }
 
     @Override
-    public void createSubtask(Subtask subtask) throws CreateTaskException {
+    public void createSubtask(Subtask subtask) throws CreateTaskException, OverlappingTaskTimeException {
         super.createSubtask(subtask);
         save();
     }
 
     @Override
-    public void updateSubtask(Subtask subtask) throws TaskNotFoundException {
+    public void updateSubtask(Subtask subtask) throws TaskNotFoundException, OverlappingTaskTimeException {
         super.updateSubtask(subtask);
         save();
     }
