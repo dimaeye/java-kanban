@@ -25,11 +25,9 @@ public class InMemoryTaskManagerImpl implements TaskManager {
             (task1, task2) -> {
                 LocalDateTime startTime1 = task1.getStartTime();
                 LocalDateTime startTime2 = task2.getStartTime();
-                if (startTime1 == null && startTime2 == null)
-                    return 0;
-                else if (startTime1 == null) {
-                    return -1;
-                } else
+                if (startTime1 == null || startTime2 == null)
+                    return 1;
+                else
                     return startTime1.compareTo(startTime2);
             }
     );

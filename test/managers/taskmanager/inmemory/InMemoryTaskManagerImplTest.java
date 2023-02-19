@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 class InMemoryTaskManagerImplTest {
@@ -31,7 +32,7 @@ class InMemoryTaskManagerImplTest {
 
     private TaskManager taskManager;
 
-    private EasyRandom generator = new EasyRandom();
+    private final EasyRandom generator = new EasyRandom();
 
     @BeforeEach
     void beforeEach() {
@@ -123,6 +124,16 @@ class InMemoryTaskManagerImplTest {
 
     @Test
     void createTask() {
+        Task task1 = new Task(1,"1","1", LocalDateTime.now(), 10);
+        Task task2 = new Task(2,"2","2", LocalDateTime.now().minusHours(20), 20);
+        Task task3 = new Task(3,"3","3");
+
+        taskManager.createTask(task1);
+        taskManager.createTask(task2);
+        taskManager.createTask(task3);
+
+        taskManager.getPrioritizedTasks().forEach(System.out::println);
+
     }
 
     @Test
