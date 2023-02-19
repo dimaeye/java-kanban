@@ -49,16 +49,15 @@ class FileBackedTaskMapper {
         TaskWrapper taskWrapper;
         switch (taskType) {
             case TASK:
+                LocalDateTime taskStartTime = !args[START_TIME_COL_INDEX].isBlank() ?
+                        LocalDateTime.parse(args[START_TIME_COL_INDEX], formatter) : null;
                 taskWrapper = new TaskWrapper(
                         new Task(
-                                Integer.parseInt(args[ID_COL_INDEX]), args[NAME_COL_INDEX], args[DESCRIPTION_COL_INDEX]
+                                Integer.parseInt(args[ID_COL_INDEX]), args[NAME_COL_INDEX], args[DESCRIPTION_COL_INDEX],
+                                taskStartTime, Integer.parseInt(args[DURATION_COL_INDEX])
                         )
                 );
-                Task task = taskWrapper.getTask();
-                task.setStatus(TaskStatus.valueOf(args[STATUS_COL_INDEX]));
-                if (!args[START_TIME_COL_INDEX].isBlank())
-                    task.setStartTime(LocalDateTime.parse(args[START_TIME_COL_INDEX], formatter));
-                task.setDuration(Integer.parseInt(args[DURATION_COL_INDEX]));
+                taskWrapper.getTask().setStatus(TaskStatus.valueOf(args[STATUS_COL_INDEX]));
                 break;
             case EPIC:
                 taskWrapper = new TaskWrapper(
@@ -68,26 +67,21 @@ class FileBackedTaskMapper {
                 );
                 break;
             case SUBTASK:
+                LocalDateTime subtaskStartTime = !args[START_TIME_COL_INDEX].isBlank() ?
+                        LocalDateTime.parse(args[START_TIME_COL_INDEX], formatter) : null;
                 taskWrapper = new TaskWrapper(
                         new Subtask(
-                                Integer.parseInt(args[ID_COL_INDEX]), args[NAME_COL_INDEX], args[DESCRIPTION_COL_INDEX]
+                                Integer.parseInt(args[ID_COL_INDEX]), args[NAME_COL_INDEX], args[DESCRIPTION_COL_INDEX],
+                                subtaskStartTime, Integer.parseInt(args[DURATION_COL_INDEX])
                         ),
                         Integer.parseInt(args[EPIC_ID_COL_INDEX])
                 );
-                Task subtask = taskWrapper.getTask();
-                subtask.setStatus(TaskStatus.valueOf(args[STATUS_COL_INDEX]));
-                if (!args[START_TIME_COL_INDEX].isBlank())
-                    subtask.setStartTime(LocalDateTime.parse(args[START_TIME_COL_INDEX], formatter));
-                subtask.setDuration(Integer.parseInt(args[DURATION_COL_INDEX]));
+                taskWrapper.getTask().setStatus(TaskStatus.valueOf(args[STATUS_COL_INDEX]));
                 break;
             default:
                 throw new RuntimeException("Неизвестный тип задачи");
         }
         return taskWrapper;
-    }
-
-    static int getTaskIdFromString(String line) {
-        return Integer.parseInt(line.substring(0, line.indexOf(ARG_SEPARATOR)));
     }
 
     static class TaskWrapper {

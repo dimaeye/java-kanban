@@ -11,13 +11,21 @@ public class Task {
     protected String title;
     protected String description;
     protected TaskStatus status = TaskStatus.NEW;
-    protected int duration;
     protected LocalDateTime startTime;
+    protected int duration;
 
     public Task(int id, String title, String description) {
         this.id = id;
         this.title = title;
         this.description = description;
+    }
+
+    public Task(int id, String title, String description, LocalDateTime startTime, int duration) {
+        this.id = id;
+        this.title = title;
+        this.description = description;
+        this.startTime = startTime;
+        this.duration = duration;
     }
 
     public int getId() {

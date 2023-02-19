@@ -24,5 +24,6 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="jeasy.easy.random.core" level="project" />
   </component>
 </module>
