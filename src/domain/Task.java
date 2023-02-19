@@ -2,6 +2,7 @@ package domain;
 
 import domain.exceptions.RelatedTaskException;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -10,6 +11,8 @@ public class Task {
     protected String title;
     protected String description;
     protected TaskStatus status = TaskStatus.NEW;
+    protected int duration;
+    protected LocalDateTime startTime;
 
     public Task(int id, String title, String description) {
         this.id = id;
@@ -63,6 +66,29 @@ public class Task {
 
     public TaskType getTaskType() {
         return TaskType.TASK;
+    }
+
+    public int getDuration() {
+        return duration;
+    }
+
+    public void setDuration(int duration) {
+        this.duration = duration;
+    }
+
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public LocalDateTime getEndTime() {
+        if (startTime != null && duration != 0)
+            return startTime.plusMinutes(duration);
+        else
+            return null;
     }
 
     @Override
