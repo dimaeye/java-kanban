@@ -3,6 +3,7 @@ package managers.taskmanager.inmemory;
 import domain.Epic;
 import domain.Subtask;
 import domain.Task;
+import domain.exceptions.TaskNotFoundException;
 import managers.historymanager.HistoryManager;
 import managers.taskmanager.TaskManager;
 import org.jeasy.random.EasyRandom;
@@ -119,14 +120,43 @@ class InMemoryTaskManagerImplTest {
     }
 
     @Test
-    void getTask() {
+    void shouldReturnTaskByIdWhenTaskCreated() {
+        Task expectedTask = generator.nextObject(Task.class);
+        taskManager.createTask(expectedTask);
+
+        Task actualTask = taskManager.getTask(expectedTask.getId());
+
+        Assertions.assertEquals(expectedTask, actualTask);
+    }
+
+    @Test
+    void shouldThrowTaskNotFoundExceptionWhenGetTaskByBadId() {
+        Task task = generator.nextObject(Task.class);
+        taskManager.createTask(task);
+
+        int randomTaskId = task.getId() + generator.nextInt();
+        TaskNotFoundException taskNotFoundException = Assertions.assertThrows(TaskNotFoundException.class,
+                () -> taskManager.getTask(randomTaskId));
+
+        Assertions.assertEquals(
+                "Задача с идентификатором " + randomTaskId + " не найдена!",
+                taskNotFoundException.getMessage()
+        );
+    }
+
+    @Test
+    void shouldThrowOverlappingTaskTimeExceptionWhenCreateTaskWithOverlappingTime() {
+        Task task = generator.nextObject(Task.class);
+        task.setStartTime(LocalDateTime.now());
+        task.setDuration(60);
+
     }
 
     @Test
     void createTask() {
-        Task task1 = new Task(1,"1","1", LocalDateTime.now(), 10);
-        Task task2 = new Task(2,"2","2", LocalDateTime.now().minusHours(20), 20);
-        Task task3 = new Task(3,"3","3");
+        Task task1 = new Task(1, "1", "1", LocalDateTime.now(), 10);
+        Task task2 = new Task(2, "2", "2", LocalDateTime.now().minusHours(20), 20);
+        Task task3 = new Task(3, "3", "3");
 
         taskManager.createTask(task1);
         taskManager.createTask(task2);
