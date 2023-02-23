@@ -14,9 +14,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -278,9 +277,7 @@ class InMemoryTaskManagerImplTest {
     @Test
     void getEpic() {
         final Epic expectedEpic = new Epic(
-                taskManager.getUniqueEpicId(),
-                generator.nextObject(String.class),
-                generator.nextObject(String.class)
+                taskManager.getUniqueEpicId(), generator.nextObject(String.class), generator.nextObject(String.class)
         );
         taskManager.createEpic(expectedEpic);
 
@@ -292,9 +289,7 @@ class InMemoryTaskManagerImplTest {
     @Test
     void shouldThrowTaskNotFoundExceptionWhenGetEpicByRandomId() {
         final Epic epic = new Epic(
-                taskManager.getUniqueEpicId(),
-                generator.nextObject(String.class),
-                generator.nextObject(String.class)
+                taskManager.getUniqueEpicId(), generator.nextObject(String.class), generator.nextObject(String.class)
         );
         taskManager.createEpic(epic);
 
@@ -311,9 +306,7 @@ class InMemoryTaskManagerImplTest {
     @Test
     void createEpic() {
         final Epic expectedEpic = new Epic(
-                taskManager.getUniqueEpicId(),
-                generator.nextObject(String.class),
-                generator.nextObject(String.class)
+                taskManager.getUniqueEpicId(), generator.nextObject(String.class), generator.nextObject(String.class)
         );
         taskManager.createEpic(expectedEpic);
 
@@ -339,9 +332,7 @@ class InMemoryTaskManagerImplTest {
     @Test
     void updateEpic() {
         final Epic epic = new Epic(
-                taskManager.getUniqueEpicId(),
-                generator.nextObject(String.class),
-                generator.nextObject(String.class)
+                taskManager.getUniqueEpicId(), generator.nextObject(String.class), generator.nextObject(String.class)
         );
         taskManager.createEpic(epic);
         final int epicId = epic.getId();
@@ -360,9 +351,7 @@ class InMemoryTaskManagerImplTest {
     @Test
     void shouldThrowTaskNotFoundExceptionWhenUpdateUncreatedEpic() {
         final Epic epic = new Epic(
-                taskManager.getUniqueEpicId(),
-                generator.nextObject(String.class),
-                generator.nextObject(String.class)
+                taskManager.getUniqueEpicId(), generator.nextObject(String.class), generator.nextObject(String.class)
         );
 
         TaskNotFoundException taskNotFoundException = assertThrows(TaskNotFoundException.class,
@@ -374,9 +363,7 @@ class InMemoryTaskManagerImplTest {
     @Test
     void removeEpic() {
         final Epic epic = new Epic(
-                taskManager.getUniqueEpicId(),
-                generator.nextObject(String.class),
-                generator.nextObject(String.class)
+                taskManager.getUniqueEpicId(), generator.nextObject(String.class), generator.nextObject(String.class)
         );
         taskManager.createEpic(epic);
 
@@ -391,9 +378,7 @@ class InMemoryTaskManagerImplTest {
     @Test
     void shouldThrowTaskNotFoundExceptionWhenRemoveEpicByRandomId() {
         final Epic epic = new Epic(
-                taskManager.getUniqueEpicId(),
-                generator.nextObject(String.class),
-                generator.nextObject(String.class)
+                taskManager.getUniqueEpicId(), generator.nextObject(String.class), generator.nextObject(String.class)
         );
         taskManager.createEpic(epic);
 
@@ -410,9 +395,7 @@ class InMemoryTaskManagerImplTest {
     @Test
     void getAllSubtasksOfEpic() {
         final Epic epic = new Epic(
-                taskManager.getUniqueEpicId(),
-                generator.nextObject(String.class),
-                generator.nextObject(String.class)
+                taskManager.getUniqueEpicId(), generator.nextObject(String.class), generator.nextObject(String.class)
         );
 
         final int subtasksCount = 10;
@@ -420,8 +403,7 @@ class InMemoryTaskManagerImplTest {
         for (int i = 0; i < subtasksCount; i++) {
             Subtask subtask = new Subtask(
                     taskManager.getUniqueSubtaskId(),
-                    generator.nextObject(String.class),
-                    generator.nextObject(String.class)
+                    generator.nextObject(String.class), generator.nextObject(String.class)
             );
             subtask.addRelatedTask(epic);
             expectedSubtasks.add(subtask);
@@ -436,9 +418,7 @@ class InMemoryTaskManagerImplTest {
     @Test
     void shouldThrowTaskNotFoundExceptionWhenGetAllSubtasksOfEpicByRandomEpicId() {
         final Epic epic = new Epic(
-                taskManager.getUniqueEpicId(),
-                generator.nextObject(String.class),
-                generator.nextObject(String.class)
+                taskManager.getUniqueEpicId(), generator.nextObject(String.class), generator.nextObject(String.class)
         );
 
         taskManager.createEpic(epic);
@@ -459,6 +439,26 @@ class InMemoryTaskManagerImplTest {
 
     @Test
     void getAllSubtasks() {
+        final Epic epic = new Epic(
+                taskManager.getUniqueEpicId(), generator.nextObject(String.class), generator.nextObject(String.class)
+        );
+        final int subtasksCount = 10;
+        final List<Subtask> expectedSubtasks = new ArrayList<>(subtasksCount);
+
+        for (int i = 0; i < subtasksCount; i++) {
+            expectedSubtasks.add(
+                    new Subtask(
+                            taskManager.getUniqueSubtaskId(),
+                            generator.nextObject(String.class), generator.nextObject(String.class), epic
+                    )
+            );
+        }
+
+        taskManager.createEpic(epic);
+        expectedSubtasks.forEach(taskManager::createSubtask);
+        List<Subtask> actualSubtasks = taskManager.getAllSubtasks();
+
+        assertEquals(expectedSubtasks, actualSubtasks);
     }
 
     @Test
@@ -468,9 +468,9 @@ class InMemoryTaskManagerImplTest {
 
     @Test
     void shouldReturnEmptyListOfSubtasksAfterRemoveAllSubtasks() {
-        int subtasksCount = 10;
-        Epic epic = new Epic(
-                generator.nextInt(), generator.nextObject(String.class), generator.nextObject(String.class)
+        final int subtasksCount = 10;
+        final Epic epic = new Epic(
+                taskManager.getUniqueEpicId(), generator.nextObject(String.class), generator.nextObject(String.class)
         );
         taskManager.createEpic(epic);
         for (int i = 0; i < subtasksCount; i++) {
@@ -493,30 +493,245 @@ class InMemoryTaskManagerImplTest {
 
     @Test
     void getSubtask() {
+        final Epic epic = new Epic(
+                taskManager.getUniqueEpicId(), generator.nextObject(String.class), generator.nextObject(String.class)
+        );
+        final Subtask expectedSubtask = new Subtask(
+                taskManager.getUniqueSubtaskId(),
+                generator.nextObject(String.class), generator.nextObject(String.class), epic
+        );
+        epic.addRelatedTask(expectedSubtask);
+
+        taskManager.createEpic(epic);
+        Subtask actualSubtask = taskManager.getSubtask(expectedSubtask.getId());
+
+        assertEquals(expectedSubtask, actualSubtask);
+    }
+
+    @Test
+    void shouldThrowTaskNotFoundExceptionWhenGetSubtaskByRandomId() {
+        final Epic epic = new Epic(
+                taskManager.getUniqueEpicId(), generator.nextObject(String.class), generator.nextObject(String.class)
+        );
+        final Subtask expectedSubtask = new Subtask(
+                taskManager.getUniqueSubtaskId(),
+                generator.nextObject(String.class), generator.nextObject(String.class), epic
+        );
+        epic.addRelatedTask(expectedSubtask);
+        taskManager.createEpic(epic);
+
+        final int randomSubtaskId = expectedSubtask.getId() + generator.nextInt();
+
+        TaskNotFoundException taskNotFoundException = assertThrows(TaskNotFoundException.class,
+                () -> taskManager.getSubtask(randomSubtaskId)
+        );
+
+        assertEquals(
+                getMessageTaskNotFoundException(randomSubtaskId), taskNotFoundException.getMessage()
+        );
     }
 
     @Test
     void createSubtask() {
+        final Epic epic = new Epic(
+                taskManager.getUniqueEpicId(), generator.nextObject(String.class), generator.nextObject(String.class)
+        );
+        taskManager.createEpic(epic);
+
+        final Subtask subtask = new Subtask(
+                taskManager.getUniqueSubtaskId(),
+                generator.nextObject(String.class), generator.nextObject(String.class), epic
+        );
+
+        taskManager.createSubtask(subtask);
+
+        assertEquals(subtask, taskManager.getSubtask(subtask.getId()));
+    }
+
+    @Test
+    void shouldThrowCreateTaskExceptionWhenSubtaskAlreadyExistWithSameId() {
+        final Epic epic = new Epic(
+                taskManager.getUniqueEpicId(), generator.nextObject(String.class), generator.nextObject(String.class)
+        );
+        taskManager.createEpic(epic);
+
+        final Subtask subtask = new Subtask(
+                taskManager.getUniqueSubtaskId(),
+                generator.nextObject(String.class), generator.nextObject(String.class), epic
+        );
+        taskManager.createSubtask(subtask);
+
+        final Subtask newSubtask = new Subtask(
+                subtask.getId(), generator.nextObject(String.class), generator.nextObject(String.class), epic
+        );
+
+        CreateTaskException createTaskException = assertThrows(CreateTaskException.class,
+                () -> taskManager.createSubtask(newSubtask));
+
+        assertEquals(getMessageCreateTaskException(subtask.getId()), createTaskException.getMessage());
+    }
+
+    @Test
+    void shouldThrowCreateTaskExceptionWhenTryToCreateSubtaskWithUncreatedEpic() {
+        final Subtask subtask = new Subtask(
+                taskManager.getUniqueSubtaskId(),
+                generator.nextObject(String.class), generator.nextObject(String.class),
+                new Epic(
+                        taskManager.getUniqueEpicId(), generator.nextObject(String.class),
+                        generator.nextObject(String.class)
+                )
+        );
+
+        CreateTaskException createTaskException = assertThrows(CreateTaskException.class,
+                () -> taskManager.createSubtask(subtask));
+
+        assertEquals(getMessageCreateTaskException(subtask.getId()), createTaskException.getMessage());
     }
 
     @Test
     void updateSubtask() {
+        final Epic epic = new Epic(
+                taskManager.getUniqueEpicId(), generator.nextObject(String.class), generator.nextObject(String.class)
+        );
+        taskManager.createEpic(epic);
+
+        final int subtaskId = taskManager.getUniqueSubtaskId();
+        final Subtask subtask = new Subtask(
+                subtaskId, generator.nextObject(String.class), generator.nextObject(String.class), epic
+        );
+        taskManager.createSubtask(subtask);
+
+        final String newSubtaskDescription = generator.nextObject(String.class);
+        final TaskStatus taskStatus = TaskStatus.IN_PROGRESS;
+
+        final Subtask savedSubtask = taskManager.getSubtask(subtaskId);
+        savedSubtask.setDescription(newSubtaskDescription);
+        savedSubtask.setStatus(taskStatus);
+
+        taskManager.updateSubtask(savedSubtask);
+        assertEquals(savedSubtask, taskManager.getSubtask(subtaskId));
+    }
+
+    @Test
+    void shouldThrowTaskNotFoundExceptionWhenUpdateUncreatedSubtask() {
+        final Epic epic = new Epic(
+                taskManager.getUniqueEpicId(), generator.nextObject(String.class), generator.nextObject(String.class)
+        );
+        taskManager.createEpic(epic);
+
+        final Subtask subtask = new Subtask(
+                taskManager.getUniqueSubtaskId(),
+                generator.nextObject(String.class), generator.nextObject(String.class), epic
+        );
+
+        TaskNotFoundException taskNotFoundException = assertThrows(TaskNotFoundException.class,
+                () -> taskManager.updateSubtask(subtask));
+
+        assertEquals(getMessageTaskNotFoundException(subtask.getId()), taskNotFoundException.getMessage());
     }
 
     @Test
     void removeSubtask() {
+        final Epic epic = new Epic(
+                taskManager.getUniqueEpicId(), generator.nextObject(String.class), generator.nextObject(String.class)
+        );
+        taskManager.createEpic(epic);
+
+        final int subtaskId = taskManager.getUniqueSubtaskId();
+        final Subtask subtask = new Subtask(
+                subtaskId, generator.nextObject(String.class), generator.nextObject(String.class), epic
+        );
+
+        taskManager.createSubtask(subtask);
+        taskManager.removeSubtask(subtaskId);
+
+        assertTrue(taskManager.getAllSubtasks().isEmpty());
+    }
+
+    @Test
+    void shouldThrowTaskNotFoundExceptionWhenRemoveSubtaskByRandomId() {
+        final Epic epic = new Epic(
+                taskManager.getUniqueEpicId(), generator.nextObject(String.class), generator.nextObject(String.class)
+        );
+        taskManager.createEpic(epic);
+
+        final Subtask subtask = new Subtask(
+                taskManager.getUniqueSubtaskId(),
+                generator.nextObject(String.class), generator.nextObject(String.class), epic
+        );
+        taskManager.createSubtask(subtask);
+        final int randomSubtaskId = subtask.getId() + generator.nextInt();
+
+        TaskNotFoundException taskNotFoundException = assertThrows(TaskNotFoundException.class,
+                () -> taskManager.removeSubtask(randomSubtaskId)
+        );
+
+        assertEquals(getMessageTaskNotFoundException(randomSubtaskId), taskNotFoundException.getMessage());
     }
 
     @Test
     void getPrioritizedTasks() {
+        final Epic epic = new Epic(
+                taskManager.getUniqueEpicId(), generator.nextObject(String.class), generator.nextObject(String.class)
+        );
+        taskManager.createEpic(epic);
+
+        final int taskDuration = 15;
+        final int tasksCount = 20;
+        final int tasksCountNullStartTime = 5;
+        final Set<LocalDateTime> localDateTimes = new TreeSet<>();
+        for (int i = 0; i < tasksCount - tasksCountNullStartTime; i++) {
+            localDateTimes.add(LocalDateTime.now().minusHours(i));
+        }
+        final List<Task> tasks = new ArrayList<>(tasksCount);
+
+        final LocalDateTime[] dtArr = new LocalDateTime[localDateTimes.size()];
+        localDateTimes.toArray(dtArr);
+
+        for (int i = 0; i < tasksCount - tasksCountNullStartTime; i++) {
+            if (i % 2 == 0)
+                tasks.add(new Task(taskManager.getUniqueTaskId(),
+                        generator.nextObject(String.class), generator.nextObject(String.class),
+                        dtArr[i], taskDuration
+                ));
+            else
+                tasks.add(new Subtask(taskManager.getUniqueSubtaskId(),
+                        generator.nextObject(String.class), generator.nextObject(String.class),
+                        dtArr[i], taskDuration, epic
+                ));
+        }
+        for (int i = tasksCount - tasksCountNullStartTime; i < tasksCount; i++) {
+            if (i % 2 == 0)
+                tasks.add(new Task(taskManager.getUniqueTaskId(),
+                        generator.nextObject(String.class), generator.nextObject(String.class)
+                ));
+            else
+                tasks.add(new Subtask(taskManager.getUniqueSubtaskId(),
+                        generator.nextObject(String.class), generator.nextObject(String.class), epic
+                ));
+        }
+
+        for (Task task : tasks) {
+            if (task instanceof Subtask)
+                taskManager.createSubtask((Subtask) task);
+            else
+                taskManager.createTask(task);
+        }
+
+        final List<LocalDateTime> expectedLocalDateTimes = new ArrayList<>(localDateTimes);
+        for (int i = 0; i < tasksCountNullStartTime; i++) {
+            expectedLocalDateTimes.add(null);
+        }
+        final List<LocalDateTime> actualLocalDateTimes =
+                taskManager.getPrioritizedTasks().stream().map(Task::getStartTime).collect(Collectors.toList());
+
+        actualLocalDateTimes.forEach(System.out::println);
+        assertEquals(expectedLocalDateTimes, actualLocalDateTimes);
     }
 
     @Test
     void getUniqueSubtaskId() {
-    }
-
-    @Test
-    void setInitialUniqueId() {
+        assertEquals(1, taskManager.getUniqueSubtaskId());
     }
 
     private String getMessageTaskNotFoundException(int taskId) {
