@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public abstract class TaskManagerTest<T extends TaskManager> {
     protected T taskManager;
-    private final EasyRandom generator = new EasyRandom();
+    protected final EasyRandom generator = new EasyRandom();
 
     public TaskManagerTest(T taskManager) {
         this.taskManager = taskManager;

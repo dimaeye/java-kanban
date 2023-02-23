@@ -3,6 +3,7 @@ package managers.taskmanager.inmemory;
 import domain.Task;
 import managers.historymanager.HistoryManager;
 import managers.taskmanager.TaskManagerTest;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import java.util.ArrayList;
@@ -35,6 +36,7 @@ class InMemoryTaskManagerImplTest extends TaskManagerTest<InMemoryTaskManagerImp
         taskManager = new InMemoryTaskManagerImpl(historyManager);
     }
 
+    @AfterEach
     @Override
     protected void afterEach() {
     }
