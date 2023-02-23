@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class InMemoryTaskManagerImpl implements TaskManager {
 
-    private static final AtomicInteger taskId = new AtomicInteger(0);
+    private final AtomicInteger taskId = new AtomicInteger(0);
 
     private final Map<Integer, Task> tasks = new HashMap<>();
 

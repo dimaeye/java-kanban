@@ -34,7 +34,7 @@ public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl {
             try {
                 Files.createFile(this.filePath);
                 try (FileWriter fileWriter = new FileWriter(this.filePath.toFile())) {
-                    fileWriter.write(FileBackedTaskMapper.HEADER_OF_FILE + "\n\n");
+                    fileWriter.write(FileBackedTaskMapper.HEADER_OF_FILE + "\n\n\n");
                 }
             } catch (IOException e) {
                 e.printStackTrace();
