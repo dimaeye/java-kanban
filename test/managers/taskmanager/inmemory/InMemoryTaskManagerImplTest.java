@@ -26,13 +26,9 @@ class InMemoryTaskManagerImplTest extends TaskManagerTest<InMemoryTaskManagerImp
         }
     };
 
-    public InMemoryTaskManagerImplTest() {
-        super(new InMemoryTaskManagerImpl(historyManager));
-    }
-
     @BeforeEach
     @Override
-    public void beforeEach() {
+    protected void beforeEach() {
         taskManager = new InMemoryTaskManagerImpl(historyManager);
     }
 

@@ -20,10 +20,6 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     protected T taskManager;
     protected final EasyRandom generator = new EasyRandom();
 
-    public TaskManagerTest(T taskManager) {
-        this.taskManager = taskManager;
-    }
-
     abstract protected void beforeEach();
 
     abstract protected void afterEach();

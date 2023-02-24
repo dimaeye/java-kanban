@@ -27,10 +27,6 @@ class FileBackedTaskManagerImplTest extends TaskManagerTest<FileBackedTaskManage
     private static HistoryManager historyManager = getStubHistoryManager();
     private static String filePath;
 
-    public FileBackedTaskManagerImplTest() {
-        super(new FileBackedTaskManagerImpl(historyManager, filePath));
-    }
-
     @BeforeAll
     static void beforeAll() {
         filePath = createTemporaryFile();
