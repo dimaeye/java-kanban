@@ -87,11 +87,57 @@ class FileBackedTaskManagerImplTest extends TaskManagerTest<FileBackedTaskManage
         final TaskManager newTaskManager = new FileBackedTaskManagerImpl(newHistoryManager, filePath);
 
         assertAll(
-                () -> assertEquals(expectedTasks, newTaskManager.getAllTasks()),
-                () -> assertEquals(expectedEpics, newTaskManager.getAllEpics()),
-                () -> assertTrue(newTaskManager.getAllSubtasks().isEmpty()),
-                () -> assertEquals(expectedSubtasks, newTaskManager.getAllSubtasks()),
-                () -> assertEquals(expectedHistory, newHistoryManager.getHistory())
+                () -> assertEquals(
+                        expectedTasks, newTaskManager.getAllTasks(), "Задачи из файла восстановлены верно"
+                ),
+                () -> assertEquals(
+                        expectedEpics, newTaskManager.getAllEpics(), "Эпики из файла восстановлены верно"
+                ),
+                () -> assertTrue(
+                        newTaskManager.getAllSubtasks().isEmpty(), "Список подзадач пуст"
+                ),
+                () -> assertEquals(
+                        expectedSubtasks, newTaskManager.getAllSubtasks(), "Подзадачи из файла восстановлены верно"
+                ),
+                () -> assertEquals(
+                        expectedHistory, newHistoryManager.getHistory(), "История просмотров восстановлена верно"
+                )
+        );
+    }
+
+    @Test
+    void shouldReturnEmptyHistoryAfterRestoreFromFileWithEmptyHistoryLine() {
+        Task task = generator.nextObject(Task.class);
+        Epic epic = new Epic(
+                taskManager.getUniqueEpicId(), generator.nextObject(String.class), generator.nextObject(String.class)
+        );
+        Subtask subtask = new Subtask(
+                taskManager.getUniqueSubtaskId(),
+                generator.nextObject(String.class), generator.nextObject(String.class), epic
+        );
+
+        taskManager.createTask(task);
+        taskManager.createEpic(epic);
+        taskManager.createSubtask(subtask);
+
+        taskManager.getTask(task.getId());
+        taskManager.removeTask(task.getId());
+
+        final List<Epic> expectedEpics = taskManager.getAllEpics();
+        final List<Subtask> expectedSubtasks = taskManager.getAllSubtasks();
+
+        final HistoryManager newHistoryManager = getStubHistoryManager();
+        final TaskManager newTaskManager = new FileBackedTaskManagerImpl(newHistoryManager, filePath);
+
+        assertAll(
+                () -> assertTrue(newHistoryManager.getHistory().isEmpty(), "Пустой список истории"),
+                () -> assertTrue(newTaskManager.getAllTasks().isEmpty(), "Пустой список задач"),
+                () -> assertEquals(
+                        expectedEpics, newTaskManager.getAllEpics(), "Эпики из файла восстановлены верно"
+                ),
+                () -> assertEquals(
+                        expectedSubtasks, newTaskManager.getAllSubtasks(), "Подзадачи из файла восстановлены верно"
+                )
         );
     }
 

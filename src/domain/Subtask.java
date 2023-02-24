@@ -84,7 +84,9 @@ public class Subtask extends Task {
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
         Subtask subtask = (Subtask) o;
-        return Objects.equals(epic, subtask.epic);
+        return Objects.hash(epic.id, epic.title, epic.description, epic.status, epic.duration, epic.startTime)
+                == Objects.hash(subtask.epic.id, subtask.epic.title, subtask.epic.description, subtask.epic.status,
+                subtask.epic.duration, subtask.epic.startTime);
     }
 
     @Override
