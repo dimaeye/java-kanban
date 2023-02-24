@@ -19,7 +19,7 @@ public abstract class HistoryManagerTest<T extends HistoryManager> {
     abstract protected void afterEach();
 
     @Test
-    void shouldReturnEmptyHistoryAfterRemoveAllViews() {
+    protected void shouldReturnEmptyHistoryAfterRemoveAllViews() {
         int tasksCount = 10;
         final List<Task> tasks = generator.objects(Task.class, tasksCount).collect(Collectors.toList());
         tasks.forEach(task -> historyManager.add(task));
@@ -36,7 +36,7 @@ public abstract class HistoryManagerTest<T extends HistoryManager> {
     }
 
     @Test
-    void shouldReturnOnlyOneTaskInHistoryAfterManyViews() {
+    protected void shouldReturnOnlyOneTaskInHistoryAfterManyViews() {
         int duplicateViews = 15;
         final Task task = generator.nextObject(Task.class);
 
@@ -51,7 +51,7 @@ public abstract class HistoryManagerTest<T extends HistoryManager> {
     }
 
     @Test
-    void checkRemoveViewFromTheTop() {
+    protected void checkRemoveViewFromTheTop() {
         int tasksCount = 10;
         final List<Task> tasks = generator.objects(Task.class, tasksCount).collect(Collectors.toList());
         tasks.forEach(task -> historyManager.add(task));
@@ -63,7 +63,7 @@ public abstract class HistoryManagerTest<T extends HistoryManager> {
     }
 
     @Test
-    void checkRemoveViewFromTheMiddle() {
+    protected void checkRemoveViewFromTheMiddle() {
         int tasksCount = 15;
         final List<Task> tasks = generator.objects(Task.class, tasksCount).collect(Collectors.toList());
         tasks.forEach(task -> historyManager.add(task));
@@ -76,7 +76,7 @@ public abstract class HistoryManagerTest<T extends HistoryManager> {
     }
 
     @Test
-    void checkRemoveViewFromTheEnd() {
+    protected void checkRemoveViewFromTheEnd() {
         int tasksCount = 10;
         final List<Task> tasks = generator.objects(Task.class, tasksCount).collect(Collectors.toList());
         tasks.forEach(task -> historyManager.add(task));
