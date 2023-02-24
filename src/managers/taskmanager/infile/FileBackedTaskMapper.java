@@ -2,29 +2,45 @@ package managers.taskmanager.infile;
 
 import domain.*;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 class FileBackedTaskMapper {
-    static final String HEADER_OF_FILE = "id,type,name,status,description,epic";
+    static final String HEADER_OF_FILE = "id,type,name,status,description,epic,startTime,duration,endTime";
     private static final int ID_COL_INDEX = 0;
     private static final int TASK_TYPE_COL_INDEX = 1;
     private static final int NAME_COL_INDEX = 2;
     private static final int STATUS_COL_INDEX = 3;
     private static final int DESCRIPTION_COL_INDEX = 4;
     private static final int EPIC_ID_COL_INDEX = 5;
+    private static final int START_TIME_COL_INDEX = 6;
+    private static final int DURATION_COL_INDEX = 7;
+    private static final int END_TIME_COL_INDEX = 8;
     private static final char ARG_SEPARATOR = ',';
+    private static final String DATE_TIME_FORMAT = "dd.MM.yyyy HH:mm:ss";
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_TIME_FORMAT);
 
     private FileBackedTaskMapper() {
     }
 
     static <T extends Task> String toString(T task) {
-        //id,type,name,status,description,epic
+        //id,type,name,status,description,epic,startTime,duration,endTime
         if (task instanceof Subtask) {
-            return String.format("%d,%s,%s,%s,%s,%s", task.getId(), task.getTaskType(), task.getTitle(),
-                    task.getStatus(), task.getDescription(), task.getAllRelatedTasks().get(0).getId());
+            return String.format(
+                    "%d,%s,%s,%s,%s,%s,%s,%d,%s",
+                    task.getId(), task.getTaskType(), task.getTitle(), task.getStatus(), task.getDescription(),
+                    task.getAllRelatedTasks().get(0).getId(),
+                    task.getStartTime() != null ? task.getStartTime().format(formatter) : "", task.getDuration(),
+                    task.getEndTime() != null ? task.getEndTime().format(formatter) : ""
+            );
         } else
-            return String.format("%d,%s,%s,%s,%s,", task.getId(), task.getTaskType(), task.getTitle(),
-                    task.getStatus(), task.getDescription());
+            return String.format(
+                    "%d,%s,%s,%s,%s,,%s,%d,%s",
+                    task.getId(), task.getTaskType(), task.getTitle(), task.getStatus(), task.getDescription(),
+                    task.getStartTime() != null ? task.getStartTime().format(formatter) : "", task.getDuration(),
+                    task.getEndTime() != null ? task.getEndTime().format(formatter) : ""
+            );
     }
 
     static TaskWrapper fromString(String line) {
@@ -33,9 +49,12 @@ class FileBackedTaskMapper {
         TaskWrapper taskWrapper;
         switch (taskType) {
             case TASK:
+                LocalDateTime taskStartTime = !args[START_TIME_COL_INDEX].isBlank() ?
+                        LocalDateTime.parse(args[START_TIME_COL_INDEX], formatter) : null;
                 taskWrapper = new TaskWrapper(
                         new Task(
-                                Integer.parseInt(args[ID_COL_INDEX]), args[NAME_COL_INDEX], args[DESCRIPTION_COL_INDEX]
+                                Integer.parseInt(args[ID_COL_INDEX]), args[NAME_COL_INDEX], args[DESCRIPTION_COL_INDEX],
+                                taskStartTime, Integer.parseInt(args[DURATION_COL_INDEX])
                         )
                 );
                 taskWrapper.getTask().setStatus(TaskStatus.valueOf(args[STATUS_COL_INDEX]));
@@ -48,9 +67,12 @@ class FileBackedTaskMapper {
                 );
                 break;
             case SUBTASK:
+                LocalDateTime subtaskStartTime = !args[START_TIME_COL_INDEX].isBlank() ?
+                        LocalDateTime.parse(args[START_TIME_COL_INDEX], formatter) : null;
                 taskWrapper = new TaskWrapper(
                         new Subtask(
-                                Integer.parseInt(args[ID_COL_INDEX]), args[NAME_COL_INDEX], args[DESCRIPTION_COL_INDEX]
+                                Integer.parseInt(args[ID_COL_INDEX]), args[NAME_COL_INDEX], args[DESCRIPTION_COL_INDEX],
+                                subtaskStartTime, Integer.parseInt(args[DURATION_COL_INDEX])
                         ),
                         Integer.parseInt(args[EPIC_ID_COL_INDEX])
                 );
@@ -60,10 +82,6 @@ class FileBackedTaskMapper {
                 throw new RuntimeException("Неизвестный тип задачи");
         }
         return taskWrapper;
-    }
-
-    static int getTaskIdFromString(String line) {
-        return Integer.parseInt(line.substring(0, line.indexOf(ARG_SEPARATOR)));
     }
 
     static class TaskWrapper {

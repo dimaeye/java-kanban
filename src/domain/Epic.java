@@ -1,23 +1,27 @@
 package domain;
 
-import domain.exceptions.EpicSetStatusException;
+import domain.exceptions.EpicSetRelatedValueException;
 import domain.exceptions.RelatedTaskException;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
 public class Epic extends Task {
     private List<Subtask> subtasks = new ArrayList<>();
 
+    private LocalDateTime endTime;
+
     public Epic(int id, String title, String description) {
         super(id, title, description);
     }
 
     @Override
-    public void setStatus(TaskStatus status) throws EpicSetStatusException {
+    public void setStatus(TaskStatus status) throws EpicSetRelatedValueException {
         if (this.status != status)
-            throw new EpicSetStatusException(id);
+            throw new EpicSetRelatedValueException(id, "Status");
     }
 
     @Override
@@ -26,8 +30,10 @@ public class Epic extends Task {
             throw new IllegalArgumentException("К эпику можно привязать только - " + Subtask.class.getSimpleName());
         if (relatedTask.getAllRelatedTasks().size() == Subtask.MAX_RELATED_TASKS_SIZE
                 && relatedTask.getAllRelatedTasks().get(0).getId() == id) {
-            subtasks.add((Subtask) relatedTask);
+            Subtask newSubtask = (Subtask) relatedTask;
+            subtasks.add(newSubtask);
             verifyEpicStatus();
+            refreshTimesByNewRelatedTask(newSubtask);
         } else {
             throw new RelatedTaskException("Не удалось добавить подзадачу в эпик");
         }
@@ -43,6 +49,7 @@ public class Epic extends Task {
             }
         }
         if (indexToRemove >= 0) {
+            refreshTimesByRemovedRelatedTask(subtasks.get(indexToRemove));
             subtasks.remove(indexToRemove);
             verifyEpicStatus();
         }
@@ -64,7 +71,32 @@ public class Epic extends Task {
         return TaskType.EPIC;
     }
 
-    protected void verifyEpicStatus() {
+    @Override
+    public int getDuration() {
+        return super.getDuration();
+    }
+
+    @Override
+    public void setDuration(int duration) throws EpicSetRelatedValueException {
+        throw new EpicSetRelatedValueException(id, "Duration");
+    }
+
+    @Override
+    public LocalDateTime getStartTime() {
+        return super.getStartTime();
+    }
+
+    @Override
+    public void setStartTime(LocalDateTime startTime) throws EpicSetRelatedValueException {
+        throw new EpicSetRelatedValueException(id, "StartTime");
+    }
+
+    @Override
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
+
+    void verifyEpicStatus() {
         if (subtasks.isEmpty()
                 || subtasks.stream().filter(subtask -> subtask.status == TaskStatus.NEW).count() == subtasks.size())
             status = TaskStatus.NEW;
@@ -74,7 +106,41 @@ public class Epic extends Task {
             status = TaskStatus.IN_PROGRESS;
     }
 
+    private void refreshTimesByNewRelatedTask(Subtask relatedTask) {
+        duration += relatedTask.duration;
+        if (startTime == null && relatedTask.startTime != null) {
+            startTime = relatedTask.startTime;
+            endTime = relatedTask.getEndTime();
+        } else if (relatedTask.startTime != null) {
+            if (startTime.isAfter(relatedTask.startTime))
+                startTime = relatedTask.startTime;
+            if (endTime.isBefore(relatedTask.getEndTime()))
+                endTime = relatedTask.getEndTime();
+        }
+    }
+
+    private void refreshTimesByRemovedRelatedTask(Subtask relatedTask) {
+        duration -= relatedTask.duration;
+        if (startTime != null && startTime.equals(relatedTask.startTime)) {
+            //задать новое время startTime
+            subtasks.stream()
+                    .filter(subtask -> subtask.startTime != null)
+                    .min(Comparator.comparingInt(subtask -> subtask.startTime.getNano()))
+                    .ifPresent(subtask -> startTime = subtask.startTime);
+
+
+        }
+        if (endTime != null && endTime.equals(relatedTask.getEndTime())) {
+            //задать новое время endTime
+            subtasks.stream()
+                    .filter(subtask -> subtask.startTime != null)
+                    .max(Comparator.comparingInt(subtask -> subtask.getEndTime().getNano()))
+                    .ifPresent(subtask -> endTime = subtask.getEndTime());
+        }
+    }
+
     @Override
+
     public String toString() {
         return "Epic{" +
                 "subtasks=" + subtasks +
@@ -82,6 +148,8 @@ public class Epic extends Task {
                 ", title='" + title + '\'' +
                 ", description='" + description + '\'' +
                 ", status=" + status +
+                ", startTime=" + startTime +
+                ", duration=" + duration +
                 '}';
     }
 

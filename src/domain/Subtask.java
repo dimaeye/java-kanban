@@ -2,6 +2,7 @@ package domain;
 
 import domain.exceptions.RelatedTaskException;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -15,9 +16,19 @@ public class Subtask extends Task {
         this.epic = epic;
     }
 
+    public Subtask(int id, String title, String description, LocalDateTime startTime, int duration, Epic epic) {
+        super(id, title, description, startTime, duration);
+        this.epic = epic;
+    }
+
     public Subtask(int id, String title, String description) {
         super(id, title, description);
     }
+
+    public Subtask(int id, String title, String description, LocalDateTime startTime, int duration) {
+        super(id, title, description, startTime, duration);
+    }
+
 
     @Override
     public void setStatus(TaskStatus status) {
@@ -62,6 +73,8 @@ public class Subtask extends Task {
                 ", title='" + title + '\'' +
                 ", description='" + description + '\'' +
                 ", status=" + status +
+                ", startTime=" + startTime +
+                ", duration=" + duration +
                 '}';
     }
 
@@ -71,7 +84,9 @@ public class Subtask extends Task {
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
         Subtask subtask = (Subtask) o;
-        return Objects.equals(epic, subtask.epic);
+        return Objects.hash(epic.id, epic.title, epic.description, epic.status, epic.duration, epic.startTime)
+                == Objects.hash(subtask.epic.id, subtask.epic.title, subtask.epic.description, subtask.epic.status,
+                subtask.epic.duration, subtask.epic.startTime);
     }
 
     @Override
