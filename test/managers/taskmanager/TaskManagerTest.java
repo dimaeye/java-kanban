@@ -10,6 +10,7 @@ import domain.exceptions.TaskNotFoundException;
 import org.jeasy.random.EasyRandom;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -100,14 +101,14 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     }
 
     @Test
-    protected void shouldThrowOverlappingTaskTimeExceptionWhenCreateTaskWithOverlappingTime() {
+    protected void shouldThrowOverlappingTaskTimeExceptionWhenCreateTasksWithSameTimeAndZeroDuration() {
         final Task firstTask = generator.nextObject(Task.class);
         firstTask.setStartTime(LocalDateTime.now());
-        firstTask.setDuration(60);
+        firstTask.setDuration(0);
 
         final Task secondTask = generator.nextObject(Task.class);
         secondTask.setStartTime(LocalDateTime.now());
-        secondTask.setDuration(15);
+        secondTask.setDuration(0);
 
         taskManager.createTask(firstTask);
 
@@ -117,6 +118,76 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         assertEquals(
                 getMessageOverlappingTaskTimeException(secondTask.getId()),
                 overlappingTaskTimeException.getMessage()
+        );
+    }
+
+    @Test
+    protected void shouldThrowOverlappingTaskTimeExceptionWhenStart2BeforeStart1AndEnd2BeforeEnd1AndAfterStart1() {
+        //startTime2<startTime1<endTime2<endTime1
+        final LocalDateTime startTime1 = LocalDateTime.now();
+        final LocalDateTime startTime2 = LocalDateTime.now().minusHours(2);
+
+        final LocalDateTime endTime1 = LocalDateTime.now().plusHours(2);
+        final LocalDateTime endTime2 = LocalDateTime.now().plusHours(1);
+
+        assertMessageOfOverlappingTaskTimeException(startTime1, endTime1, startTime2, endTime2);
+    }
+
+    @Test
+    protected void shouldThrowOverlappingTaskTimeExceptionWhenStart2BeforeStart1AndStart1BeforeEnd1AndEnd1BeforeEnd2() {
+        //startTime2<startTime1<endTime1<endTime2
+        final LocalDateTime startTime1 = LocalDateTime.now();
+        final LocalDateTime startTime2 = LocalDateTime.now().minusHours(2);
+
+        final LocalDateTime endTime1 = LocalDateTime.now().plusHours(1);
+        final LocalDateTime endTime2 = LocalDateTime.now().plusHours(2);
+
+        assertMessageOfOverlappingTaskTimeException(startTime1, endTime1, startTime2, endTime2);
+    }
+
+    @Test
+    protected void shouldThrowOverlappingTaskTimeExceptionWhenStart1BeforeStart2AndStart2BeforeEnd1AndEnd1BeforeEnd2() {
+        //startTime1<startTime2<endTime1<endTime2
+        final LocalDateTime startTime1 = LocalDateTime.now().minusHours(2);
+        final LocalDateTime startTime2 = LocalDateTime.now();
+
+        final LocalDateTime endTime1 = LocalDateTime.now().plusHours(1);
+        final LocalDateTime endTime2 = LocalDateTime.now().plusHours(2);
+
+        assertMessageOfOverlappingTaskTimeException(startTime1, endTime1, startTime2, endTime2);
+    }
+
+    @Test
+    protected void shouldThrowOverlappingTaskTimeExceptionWhenStart1BeforeStart2AndStart2BeforeEnd2AndEnd2BeforeEnd1() {
+        //startTime1<startTime2<endTime2<endTime1
+        final LocalDateTime startTime1 = LocalDateTime.now().minusHours(2);
+        final LocalDateTime startTime2 = LocalDateTime.now();
+
+        final LocalDateTime endTime1 = LocalDateTime.now().plusHours(2);
+        final LocalDateTime endTime2 = LocalDateTime.now().plusHours(1);
+
+        assertMessageOfOverlappingTaskTimeException(startTime1, endTime1, startTime2, endTime2);
+    }
+
+    private void assertMessageOfOverlappingTaskTimeException(
+            LocalDateTime startTime1, LocalDateTime endTime1, LocalDateTime startTime2, LocalDateTime endTime2
+    ) {
+        final Task firstTask = generator.nextObject(Task.class);
+        firstTask.setStartTime(startTime1);
+        firstTask.setDuration((int) Duration.between(startTime1, endTime1).toMinutes());
+
+        final Task secondTask = generator.nextObject(Task.class);
+        secondTask.setStartTime(startTime2);
+        secondTask.setDuration((int) Duration.between(startTime2, endTime2).toMinutes());
+
+        taskManager.createTask(firstTask);
+
+        OverlappingTaskTimeException overlappingTaskTimeException = assertThrows(
+                OverlappingTaskTimeException.class, () -> taskManager.createTask(secondTask)
+        );
+
+        assertEquals(
+                getMessageOverlappingTaskTimeException(secondTask.getId()), overlappingTaskTimeException.getMessage()
         );
     }
 
