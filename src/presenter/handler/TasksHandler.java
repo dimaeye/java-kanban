@@ -418,7 +418,6 @@ public class TasksHandler implements HttpHandler {
         private final URI uri;
         private final String path;
         private final String method;
-        private String root;
         private String entityName;
         private final Set<String> params = new HashSet<>();
         private final Map<String, String> paramValues = new HashMap<>();
@@ -434,10 +433,6 @@ public class TasksHandler implements HttpHandler {
             return method;
         }
 
-        public String getRoot() {
-            return root;
-        }
-
         public String getEntityName() {
             return entityName;
         }
@@ -448,7 +443,6 @@ public class TasksHandler implements HttpHandler {
 
         private void parseUri() {
             String[] splitPath = path.split("/");
-            root = "/" + splitPath[1] + "/" + splitPath[2];
             entityName = splitPath[1];
 
             String urn = uri.toString();
@@ -467,13 +461,13 @@ public class TasksHandler implements HttpHandler {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             RequestInfo that = (RequestInfo) o;
-            return path.equals(that.path) && method.equals(that.method) && root.equals(that.root)
+            return path.equals(that.path) && method.equals(that.method)
                     && entityName.equals(that.entityName) && params.equals(that.params);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(path, method, root, entityName, params);
+            return Objects.hash(path, method, entityName, params);
         }
     }
 
