@@ -8,7 +8,9 @@ import managers.historymanager.HistoryManager;
 import managers.historymanager.inmemory.InMemoryHistoryManagerImpl;
 import managers.taskmanager.TaskManager;
 import managers.taskmanager.infile.FileBackedTaskManagerImpl;
+import presenter.config.HttpTaskServer;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,7 +22,11 @@ public class Main {
     private static final int DELIMITER_LINE_SIZE = 120;
     private static final String DELIMITER = "-";
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
+        HttpTaskServer httpTaskServer = new HttpTaskServer();
+        httpTaskServer.start();
+        Runtime.getRuntime().addShutdownHook(new Thread(httpTaskServer::stop));
+
         createTasks();
         System.out.println(DELIMITER.repeat(DELIMITER_LINE_SIZE));
 
