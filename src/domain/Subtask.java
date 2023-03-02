@@ -91,6 +91,8 @@ public class Subtask extends Task {
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), epic);
+        return Objects.hash(super.hashCode(),
+                epic.id, epic.title, epic.description, epic.status, epic.duration, epic.startTime
+        );
     }
 }
