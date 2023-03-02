@@ -23,22 +23,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl {
-    private final Path filePath;
+    protected final Path path;
 
-    public FileBackedTaskManagerImpl(HistoryManager historyManager, String filePath) {
+    public FileBackedTaskManagerImpl(HistoryManager historyManager, String path) {
         super(historyManager);
-        this.filePath = Path.of(filePath);
-        if (Files.exists(this.filePath)) {
-            loadFromFile();
-        } else
-            try {
-                Files.createFile(this.filePath);
-                try (FileWriter fileWriter = new FileWriter(this.filePath.toFile())) {
-                    fileWriter.write(FileBackedTaskMapper.HEADER_OF_FILE + "\n\n\n");
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        this.path = Path.of(path);
+        loadFromStorage();
     }
 
     @Override
@@ -134,12 +124,12 @@ public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl {
         save();
     }
 
-    private void save() {
-        File currentFile = filePath.toFile();
+    protected void save() {
+        File currentFile = path.toFile();
         File tmpFile;
 
         try {
-            tmpFile = Files.createTempFile(filePath.getParent(), null, ".tmp").toFile();
+            tmpFile = Files.createTempFile(path.getParent(), null, ".tmp").toFile();
         } catch (IOException e) {
             throw new ManagerSaveException(e.getMessage());
         }
@@ -177,10 +167,19 @@ public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl {
             throw new ManagerSaveException("Не удалось обновить файл " + currentFile.getName());
     }
 
-    private void loadFromFile() {
+    protected void loadFromStorage() {
+        if (!Files.exists(this.path))
+            try {
+                Files.createFile(this.path);
+                try (FileWriter fileWriter = new FileWriter(this.path.toFile())) {
+                    fileWriter.write(FileBackedTaskMapper.HEADER_OF_FILE + "\n\n\n");
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         List<String> lines;
         try {
-            lines = Files.readAllLines(filePath);
+            lines = Files.readAllLines(path);
         } catch (IOException e) {
             throw new ManagerLoadException(e.getMessage());
         }
@@ -223,7 +222,7 @@ public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl {
         List<Subtask> allSubtasks = super.getAllSubtasks();
         int skipLinesCount = allTasks.size() + allEpics.size() + allSubtasks.size() + 2; //2 is header line plus delimiter
 
-        try (Stream<String> lines = Files.lines(filePath)) {
+        try (Stream<String> lines = Files.lines(path)) {
             String line = lines.skip(skipLinesCount).findFirst().get();
             List<Integer> taskIds = FileBackedHistoryMapper.historyFromString(line);
             Stream.of(allTasks, allEpics, allSubtasks)

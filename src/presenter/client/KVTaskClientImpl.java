@@ -13,7 +13,7 @@ public class KVTaskClientImpl implements KVTaskClient {
     private static final Charset CHARSET = StandardCharsets.UTF_8;
     private final String url;
     private final HttpClient httpClient;
-    private String token;
+    private final String token;
 
     public KVTaskClientImpl(String url) {
         this.url = url;
