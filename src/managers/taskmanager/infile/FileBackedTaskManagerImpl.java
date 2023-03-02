@@ -23,11 +23,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl {
-    protected final Path path;
+    protected final String path;
+    private final Path filePath;
 
     public FileBackedTaskManagerImpl(HistoryManager historyManager, String path) {
         super(historyManager);
-        this.path = Path.of(path);
+        this.path = path;
+        filePath = Path.of(path);
         loadFromStorage();
     }
 
@@ -125,11 +127,11 @@ public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl {
     }
 
     protected void save() {
-        File currentFile = path.toFile();
+        File currentFile = filePath.toFile();
         File tmpFile;
 
         try {
-            tmpFile = Files.createTempFile(path.getParent(), null, ".tmp").toFile();
+            tmpFile = Files.createTempFile(filePath.getParent(), null, ".tmp").toFile();
         } catch (IOException e) {
             throw new ManagerSaveException(e.getMessage());
         }
@@ -168,10 +170,10 @@ public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl {
     }
 
     protected void loadFromStorage() {
-        if (!Files.exists(this.path))
+        if (!Files.exists(filePath))
             try {
-                Files.createFile(this.path);
-                try (FileWriter fileWriter = new FileWriter(this.path.toFile())) {
+                Files.createFile(filePath);
+                try (FileWriter fileWriter = new FileWriter(filePath.toFile())) {
                     fileWriter.write(FileBackedTaskMapper.HEADER_OF_FILE + "\n\n\n");
                 }
             } catch (IOException e) {
@@ -179,7 +181,7 @@ public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl {
             }
         List<String> lines;
         try {
-            lines = Files.readAllLines(path);
+            lines = Files.readAllLines(filePath);
         } catch (IOException e) {
             throw new ManagerLoadException(e.getMessage());
         }
@@ -222,7 +224,7 @@ public class FileBackedTaskManagerImpl extends InMemoryTaskManagerImpl {
         List<Subtask> allSubtasks = super.getAllSubtasks();
         int skipLinesCount = allTasks.size() + allEpics.size() + allSubtasks.size() + 2; //2 is header line plus delimiter
 
-        try (Stream<String> lines = Files.lines(path)) {
+        try (Stream<String> lines = Files.lines(filePath)) {
             String line = lines.skip(skipLinesCount).findFirst().get();
             List<Integer> taskIds = FileBackedHistoryMapper.historyFromString(line);
             Stream.of(allTasks, allEpics, allSubtasks)

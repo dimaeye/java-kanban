@@ -24,12 +24,12 @@ public class KVTaskClientImpl implements KVTaskClient {
     @Override
     public void put(String key, String json) {
         HttpRequest httpRequest = HttpRequest
-                .newBuilder(URI.create("/save/" + key + "?API_TOKEN=" + token))
+                .newBuilder(URI.create(url + "/save/" + key + "?API_TOKEN=" + token))
                 .POST(HttpRequest.BodyPublishers.ofString(json, CHARSET))
                 .build();
         try {
             HttpResponse<Void> httpResponse = httpClient.send(httpRequest, HttpResponse.BodyHandlers.discarding());
-            if (httpResponse.statusCode() != 201)
+            if (httpResponse.statusCode() != 200)
                 throw new RuntimeException("Не удалось сохранить значение");
         } catch (IOException | InterruptedException | RuntimeException e) {
             e.printStackTrace();
@@ -40,7 +40,7 @@ public class KVTaskClientImpl implements KVTaskClient {
     @Override
     public String load(String key) {
         HttpRequest httpRequest = HttpRequest
-                .newBuilder(URI.create("/load/" + key + "?API_TOKEN=" + token))
+                .newBuilder(URI.create(url + "/load/" + key + "?API_TOKEN=" + token))
                 .GET()
                 .build();
         try {

@@ -17,8 +17,8 @@ import java.util.List;
 
 public class Main {
 
-    private static final TaskManager taskManager = Managers.getDefault();
-    private static final HistoryManager historyManager = Managers.getDefaultHistory();
+    private static TaskManager taskManager;
+    private static HistoryManager historyManager;
 
     private static final int DELIMITER_LINE_SIZE = 120;
     private static final String DELIMITER = "-";
@@ -34,13 +34,15 @@ public class Main {
             kvServer.stop();
         }));
 
+        taskManager = Managers.getDefault();
+        historyManager = Managers.getDefaultHistory();
         createTasks();
         System.out.println(DELIMITER.repeat(DELIMITER_LINE_SIZE));
 
         createEpics();
         System.out.println(DELIMITER.repeat(DELIMITER_LINE_SIZE));
 
-        changeTasksStatus();
+        /*changeTasksStatus();
         System.out.println(DELIMITER.repeat(DELIMITER_LINE_SIZE));
 
         changeSubtasksStatusAndCheckEpicStatus();
@@ -65,7 +67,7 @@ public class Main {
         System.out.println(DELIMITER.repeat(DELIMITER_LINE_SIZE));
 
         System.out.println("Проверка восстановления задач и истории просмотров из файла");
-        assertEqualsManagers();
+        assertEqualsManagers();*/
     }
 
     private static void createTasks() {

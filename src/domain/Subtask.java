@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class Subtask extends Task {
-    private Epic epic;
+    private transient Epic epic;
     public final static int MAX_RELATED_TASKS_SIZE = 1;
 
     public Subtask(int id, String title, String description, Epic epic) {

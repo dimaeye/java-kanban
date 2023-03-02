@@ -12,7 +12,7 @@ public class HttpTaskServer {
     private HttpServer httpServer;
 
     public void start() throws IOException {
-        HttpServer httpServer = HttpServer.create();
+        httpServer = HttpServer.create();
         httpServer.bind(new InetSocketAddress(PORT), 0);
         httpServer.createContext("/tasks", new TasksHandler());
         httpServer.start();
