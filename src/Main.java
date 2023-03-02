@@ -9,6 +9,7 @@ import managers.historymanager.inmemory.InMemoryHistoryManagerImpl;
 import managers.taskmanager.TaskManager;
 import managers.taskmanager.infile.FileBackedTaskManagerImpl;
 import presenter.config.HttpTaskServer;
+import presenter.config.KVServer;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,9 +24,15 @@ public class Main {
     private static final String DELIMITER = "-";
 
     public static void main(String[] args) throws IOException {
+        KVServer kvServer = new KVServer();
+        kvServer.start();
+
         HttpTaskServer httpTaskServer = new HttpTaskServer();
         httpTaskServer.start();
-        Runtime.getRuntime().addShutdownHook(new Thread(httpTaskServer::stop));
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            httpTaskServer.stop();
+            kvServer.stop();
+        }));
 
         createTasks();
         System.out.println(DELIMITER.repeat(DELIMITER_LINE_SIZE));
