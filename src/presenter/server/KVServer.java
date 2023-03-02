@@ -1,4 +1,4 @@
-package presenter.config;
+package presenter.server;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;

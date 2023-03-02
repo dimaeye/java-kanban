@@ -8,8 +8,8 @@ import managers.historymanager.HistoryManager;
 import managers.historymanager.inmemory.InMemoryHistoryManagerImpl;
 import managers.taskmanager.TaskManager;
 import managers.taskmanager.infile.FileBackedTaskManagerImpl;
-import presenter.config.HttpTaskServer;
-import presenter.config.KVServer;
+import presenter.server.HttpTaskServer;
+import presenter.server.KVServer;
 
 import java.io.IOException;
 import java.util.ArrayList;

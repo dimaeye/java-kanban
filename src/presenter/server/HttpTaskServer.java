@@ -1,7 +1,7 @@
-package presenter.config;
+package presenter.server;
 
 import com.sun.net.httpserver.HttpServer;
-import presenter.handler.TasksHandler;
+import presenter.server.handler.TasksHandler;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
