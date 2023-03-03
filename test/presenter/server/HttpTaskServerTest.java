@@ -462,7 +462,7 @@ class HttpTaskServerTest {
         assertEquals(200, httpResponse.statusCode());
     }
 
-    public int getRandomNumberUsingNextInt(int min, int max) {
+    private int getRandomNumberUsingNextInt(int min, int max) {
         Random random = new Random();
         return random.nextInt(max - min) + min;
     }

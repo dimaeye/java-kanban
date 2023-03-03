@@ -5,13 +5,13 @@ import com.google.gson.reflect.TypeToken;
 import domain.Epic;
 import domain.Subtask;
 import domain.Task;
+import domain.exceptions.ManagerLoadException;
 import managers.historymanager.HistoryManager;
 import managers.taskmanager.infile.FileBackedTaskManagerImpl;
 import presenter.client.KVTaskClient;
 import presenter.client.KVTaskClientImpl;
 import presenter.config.GsonConfig;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -41,17 +41,18 @@ public class HttpTaskManager extends FileBackedTaskManagerImpl {
         Gson gson = GsonConfig.getGson();
         final int[] initialUniqueId = {0};
 
-        List<Task> tasks = new ArrayList<>();
-        List<Epic> epics = new ArrayList<>();
-        List<Integer> historyIds = new ArrayList<>();
+        List<Task> tasks;
+        List<Epic> epics;
+        List<Integer> historyIds;
 
         try {
             tasks = gson.fromJson(
                     kvTaskClient.load(Keys.TASKS.name()), new TypeToken<List<Task>>() {
                     }.getType()
             );
-        } catch (Throwable e) {
+        } catch (RuntimeException e) {
             e.printStackTrace();
+            throw new ManagerLoadException("Не удалось загрузить задачи");
         }
 
         try {
@@ -59,8 +60,9 @@ public class HttpTaskManager extends FileBackedTaskManagerImpl {
                     kvTaskClient.load(Keys.EPICS.name()), new TypeToken<List<Epic>>() {
                     }.getType()
             );
-        } catch (Throwable e) {
+        } catch (RuntimeException e) {
             e.printStackTrace();
+            throw new ManagerLoadException("Не удалось загрузить эпики с подзадачами");
         }
 
         try {
@@ -68,8 +70,9 @@ public class HttpTaskManager extends FileBackedTaskManagerImpl {
                     kvTaskClient.load(Keys.HISTORY.name()), new TypeToken<List<Integer>>() {
                     }.getType()
             );
-        } catch (Throwable e) {
+        } catch (RuntimeException e) {
             e.printStackTrace();
+            throw new ManagerLoadException("Не удалось загрузить история просмотров");
         }
 
         tasks.forEach(task -> {
@@ -98,15 +101,10 @@ public class HttpTaskManager extends FileBackedTaskManagerImpl {
         List<Epic> allEpics = super.getAllEpics();
         List<Subtask> allSubtasks = super.getAllSubtasks();
 
-        try {
-            Stream.of(allTasks, allEpics, allSubtasks)
-                    .flatMap(Collection::stream)
-                    .filter(task -> historyIds.contains(task.getId()))
-                    .forEach(historyManager::add);
-        } catch (Throwable e) {
-            e.printStackTrace();
-        }
-
+        Stream.of(allTasks, allEpics, allSubtasks)
+                .flatMap(Collection::stream)
+                .filter(task -> historyIds.contains(task.getId()))
+                .forEach(historyManager::add);
     }
 
     private enum Keys {
