@@ -120,10 +120,11 @@ public class TasksHandler implements HttpHandler {
         try {
             List<Task> tasks = taskManager.getAllTasks();
 
-            writeJsonBody(gson.toJson(tasks), exchange);
+            writeStringBody(gson.toJson(tasks), exchange);
         } catch (IOException e) {
-            e.printStackTrace();
-            //add error handler
+            handleError(exchange, e);
+        } finally {
+            exchange.close();
         }
     }
 
@@ -132,10 +133,11 @@ public class TasksHandler implements HttpHandler {
             int taskId = Integer.parseInt(requestInfo.paramValues.get("id"));
             Task task = taskManager.getTask(taskId);
 
-            writeJsonBody(gson.toJson(task), exchange);
+            writeStringBody(gson.toJson(task), exchange);
         } catch (IOException | TaskNotFoundException e) {
-            e.printStackTrace();
-            //add error handler
+            handleError(exchange, e);
+        } finally {
+            exchange.close();
         }
     }
 
@@ -150,8 +152,9 @@ public class TasksHandler implements HttpHandler {
             exchange.sendResponseHeaders(201, 0);
             exchange.close();
         } catch (IOException | CreateTaskException | OverlappingTaskTimeException e) {
-            e.printStackTrace();
-            //add error handler
+            handleError(exchange, e);
+        } finally {
+            exchange.close();
         }
     }
 
@@ -164,8 +167,9 @@ public class TasksHandler implements HttpHandler {
             exchange.sendResponseHeaders(200, 0);
             exchange.close();
         } catch (IOException | TaskNotFoundException e) {
-            e.printStackTrace();
-            //add error handler
+            handleError(exchange, e);
+        } finally {
+            exchange.close();
         }
     }
 
@@ -176,8 +180,9 @@ public class TasksHandler implements HttpHandler {
             exchange.sendResponseHeaders(200, 0);
             exchange.close();
         } catch (IOException e) {
-            e.printStackTrace();
-            //add error handler
+            handleError(exchange, e);
+        } finally {
+            exchange.close();
         }
     }
 
@@ -194,8 +199,9 @@ public class TasksHandler implements HttpHandler {
             exchange.sendResponseHeaders(200, 0);
             exchange.close();
         } catch (IOException | TaskNotFoundException | OverlappingTaskTimeException e) {
-            e.printStackTrace();
-            //add error handler
+            handleError(exchange, e);
+        } finally {
+            exchange.close();
         }
     }
 
@@ -203,10 +209,11 @@ public class TasksHandler implements HttpHandler {
         try {
             List<Epic> tasks = taskManager.getAllEpics();
 
-            writeJsonBody(gson.toJson(tasks), exchange);
+            writeStringBody(gson.toJson(tasks), exchange);
         } catch (IOException e) {
-            e.printStackTrace();
-            //add error handler
+            handleError(exchange, e);
+        } finally {
+            exchange.close();
         }
     }
 
@@ -215,10 +222,11 @@ public class TasksHandler implements HttpHandler {
             int epicId = Integer.parseInt(requestInfo.paramValues.get("id"));
             Epic epic = taskManager.getEpic(epicId);
 
-            writeJsonBody(gson.toJson(epic), exchange);
+            writeStringBody(gson.toJson(epic), exchange);
         } catch (IOException | TaskNotFoundException e) {
-            e.printStackTrace();
-            //add error handler
+            handleError(exchange, e);
+        } finally {
+            exchange.close();
         }
     }
 
@@ -238,8 +246,9 @@ public class TasksHandler implements HttpHandler {
             exchange.sendResponseHeaders(201, 0);
             exchange.close();
         } catch (IOException | CreateTaskException | OverlappingTaskTimeException e) {
-            e.printStackTrace();
-            //add error handler
+            handleError(exchange, e);
+        } finally {
+            exchange.close();
         }
     }
 
@@ -252,8 +261,9 @@ public class TasksHandler implements HttpHandler {
             exchange.sendResponseHeaders(200, 0);
             exchange.close();
         } catch (IOException | TaskNotFoundException e) {
-            e.printStackTrace();
-            //add error handler
+            handleError(exchange, e);
+        } finally {
+            exchange.close();
         }
     }
 
@@ -264,8 +274,9 @@ public class TasksHandler implements HttpHandler {
             exchange.sendResponseHeaders(200, 0);
             exchange.close();
         } catch (IOException e) {
-            e.printStackTrace();
-            //add error handler
+            handleError(exchange, e);
+        } finally {
+            exchange.close();
         }
     }
 
@@ -282,8 +293,9 @@ public class TasksHandler implements HttpHandler {
             exchange.sendResponseHeaders(200, 0);
             exchange.close();
         } catch (IOException | TaskNotFoundException | OverlappingTaskTimeException e) {
-            e.printStackTrace();
-            //add error handler
+            handleError(exchange, e);
+        } finally {
+            exchange.close();
         }
     }
 
@@ -292,10 +304,11 @@ public class TasksHandler implements HttpHandler {
             int epicId = Integer.parseInt(requestInfo.paramValues.get("id"));
             List<Subtask> subtasks = taskManager.getAllSubtasksOfEpic(epicId);
 
-            writeJsonBody(gson.toJson(subtasks), exchange);
+            writeStringBody(gson.toJson(subtasks), exchange);
         } catch (IOException | TaskNotFoundException | OverlappingTaskTimeException e) {
-            e.printStackTrace();
-            //add error handler
+            handleError(exchange, e);
+        } finally {
+            exchange.close();
         }
     }
 
@@ -303,10 +316,11 @@ public class TasksHandler implements HttpHandler {
         try {
             List<Subtask> subtasks = taskManager.getAllSubtasks();
 
-            writeJsonBody(gson.toJson(subtasks), exchange);
+            writeStringBody(gson.toJson(subtasks), exchange);
         } catch (IOException e) {
-            e.printStackTrace();
-            //add error handler
+            handleError(exchange, e);
+        } finally {
+            exchange.close();
         }
     }
 
@@ -315,10 +329,11 @@ public class TasksHandler implements HttpHandler {
             int subtaskId = Integer.parseInt(requestInfo.paramValues.get("id"));
             Subtask subtask = taskManager.getSubtask(subtaskId);
 
-            writeJsonBody(gson.toJson(subtask), exchange);
+            writeStringBody(gson.toJson(subtask), exchange);
         } catch (IOException | TaskNotFoundException e) {
-            e.printStackTrace();
-            //add error handler
+            handleError(exchange, e);
+        } finally {
+            exchange.close();
         }
     }
 
@@ -337,8 +352,9 @@ public class TasksHandler implements HttpHandler {
             exchange.sendResponseHeaders(201, 0);
             exchange.close();
         } catch (IOException | CreateTaskException | OverlappingTaskTimeException e) {
-            e.printStackTrace();
-            //add error handler
+            handleError(exchange, e);
+        } finally {
+            exchange.close();
         }
     }
 
@@ -351,8 +367,9 @@ public class TasksHandler implements HttpHandler {
             exchange.sendResponseHeaders(200, 0);
             exchange.close();
         } catch (IOException | TaskNotFoundException e) {
-            e.printStackTrace();
-            //add error handler
+            handleError(exchange, e);
+        } finally {
+            exchange.close();
         }
     }
 
@@ -363,8 +380,9 @@ public class TasksHandler implements HttpHandler {
             exchange.sendResponseHeaders(200, 0);
             exchange.close();
         } catch (IOException e) {
-            e.printStackTrace();
-            //add error handler
+            handleError(exchange, e);
+        } finally {
+            exchange.close();
         }
     }
 
@@ -381,8 +399,9 @@ public class TasksHandler implements HttpHandler {
             exchange.sendResponseHeaders(200, 0);
             exchange.close();
         } catch (IOException | TaskNotFoundException | OverlappingTaskTimeException e) {
-            e.printStackTrace();
-            //add error handler
+            handleError(exchange, e);
+        } finally {
+            exchange.close();
         }
     }
 
@@ -390,10 +409,9 @@ public class TasksHandler implements HttpHandler {
         try {
             List<Task> prioritizedTasks = taskManager.getPrioritizedTasks();
 
-            writeJsonBody(gson.toJson(prioritizedTasks), exchange);
+            writeStringBody(gson.toJson(prioritizedTasks), exchange);
         } catch (IOException e) {
-            e.printStackTrace();
-            //add error handler
+            handleError(exchange, e);
         }
     }
 
@@ -401,14 +419,33 @@ public class TasksHandler implements HttpHandler {
         try {
             List<Task> history = historyManager.getHistory();
 
-            writeJsonBody(gson.toJson(history), exchange);
+            writeStringBody(gson.toJson(history), exchange);
         } catch (IOException e) {
-            e.printStackTrace();
-            //add error handler
+            handleError(exchange, e);
+        } finally {
+            exchange.close();
         }
     }
 
-    private void writeJsonBody(String body, HttpExchange exchange) throws IOException {
+    private void handleError(HttpExchange exchange, Throwable error) {
+        error.printStackTrace();
+        try {
+            if (error instanceof NumberFormatException || error instanceof TaskNotFoundException
+                    || error instanceof OverlappingTaskTimeException) {
+                exchange.sendResponseHeaders(400, 0);
+                writeStringBody(error.getMessage(), exchange);
+            } else if (error instanceof CreateTaskException) {
+                exchange.sendResponseHeaders(500, 0);
+                writeStringBody(error.getMessage(), exchange);
+            } else
+                exchange.sendResponseHeaders(500, 0);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private void writeStringBody(String body, HttpExchange exchange) throws IOException {
         exchange.getResponseHeaders()
                 .add("Content-Type", "application/json");
         exchange.sendResponseHeaders(200, 0);

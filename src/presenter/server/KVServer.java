@@ -110,7 +110,7 @@ public class KVServer {
 
     public void stop() {
         if (server != null)
-            server.stop(1);
+            server.stop(0);
         System.out.println("KVServer успешно остановлен");
     }
 

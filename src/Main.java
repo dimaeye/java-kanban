@@ -317,19 +317,19 @@ public class Main {
         TaskManager newTaskManager = new HttpTaskManager(newHistoryManager, "http://localhost:8078");
 
         if (taskManager.getAllTasks().equals(newTaskManager.getAllTasks()))
-            System.out.println("Задачи из файла восстановлены верно");
+            System.out.println("Задачи восстановлены верно");
         else
-            throw new RuntimeException("Задачи из файла восстановлены некорректно!");
+            throw new RuntimeException("Задачи восстановлены некорректно!");
 
         if (taskManager.getAllEpics().equals(newTaskManager.getAllEpics()))
-            System.out.println("Эпики из файла восстановлены верно");
+            System.out.println("Эпики восстановлены верно");
         else
-            throw new RuntimeException("Эпики из файла восстановлены некорректно!");
+            throw new RuntimeException("Эпики восстановлены некорректно!");
 
         if (taskManager.getAllSubtasks().equals(newTaskManager.getAllSubtasks()))
-            System.out.println("Подзадачи из файла восстановлены верно");
+            System.out.println("Подзадачи восстановлены верно");
         else
-            throw new RuntimeException("Подзадачи из файла восстановлены некорректно!");
+            throw new RuntimeException("Подзадачи восстановлены некорректно!");
 
         if (historyManager.getHistory().equals(newHistoryManager.getHistory()))
             System.out.println("История просмотров восстановлена верно");
