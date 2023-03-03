@@ -11,7 +11,7 @@ import presenter.client.KVTaskClient;
 import presenter.client.KVTaskClientImpl;
 import presenter.config.GsonConfig;
 
-import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,12 +19,6 @@ import java.util.stream.Stream;
 
 public class HttpTaskManager extends FileBackedTaskManagerImpl {
     private KVTaskClient kvTaskClient;
-    private final Type tasksTypeToken = new TypeToken<List<Task>>() {
-    }.getType();
-    private final Type epicsTypeToken = new TypeToken<List<Epic>>() {
-    }.getType();
-    private final Type historyTypeToken = new TypeToken<List<Integer>>() {
-    }.getType();
 
     public HttpTaskManager(HistoryManager historyManager, String path) {
         super(historyManager, path);
@@ -45,39 +39,57 @@ public class HttpTaskManager extends FileBackedTaskManagerImpl {
     protected void loadFromStorage() {
         kvTaskClient = new KVTaskClientImpl(this.path);
         Gson gson = GsonConfig.getGson();
+
+        List<Task> tasks = new ArrayList<>();
+        List<Epic> epics = new ArrayList<>();
+        List<Integer> historyIds = new ArrayList<>();
+
         try {
-            List<Task> tasks = gson.fromJson(kvTaskClient.load(Keys.TASKS.name()), tasksTypeToken);
-            tasks.forEach(this::createTask);
+            tasks = gson.fromJson(
+                    kvTaskClient.load(Keys.TASKS.name()), new TypeToken<List<Task>>() {
+                    }.getType()
+            );
         } catch (Throwable e) {
             e.printStackTrace();
         }
 
         try {
-            List<Epic> epics = gson.fromJson(kvTaskClient.load(Keys.EPICS.name()), epicsTypeToken);
-            epics.forEach(epic -> {
-                List<Task> subtasks = epic.getAllRelatedTasks();
-                subtasks.forEach(s -> s.addRelatedTask(epic));
-                createEpic(epic);
-            });
+            epics = gson.fromJson(
+                    kvTaskClient.load(Keys.EPICS.name()), new TypeToken<List<Epic>>() {
+                    }.getType()
+            );
         } catch (Throwable e) {
             e.printStackTrace();
         }
 
-        loadHistory();
+        try {
+            historyIds = gson.fromJson(
+                    kvTaskClient.load(Keys.HISTORY.name()), new TypeToken<List<Integer>>() {
+                    }.getType()
+            );
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+
+        tasks.forEach(this::createTask);
+        epics.forEach(epic -> {
+            List<Task> subtasks = epic.getAllRelatedTasks();
+            subtasks.forEach(s -> s.addRelatedTask(epic));
+            createEpic(epic);
+        });
+
+        setHistory(historyIds);
     }
 
-    private void loadHistory() {
-        Gson gson = GsonConfig.getGson();
-
+    private void setHistory(List<Integer> historyIds) {
         List<Task> allTasks = super.getAllTasks();
         List<Epic> allEpics = super.getAllEpics();
         List<Subtask> allSubtasks = super.getAllSubtasks();
 
         try {
-            List<Integer> history = gson.fromJson(kvTaskClient.load(Keys.HISTORY.name()), historyTypeToken);
             Stream.of(allTasks, allEpics, allSubtasks)
                     .flatMap(Collection::stream)
-                    .filter(task -> history.contains(task.getId()))
+                    .filter(task -> historyIds.contains(task.getId()))
                     .forEach(historyManager::add);
         } catch (Throwable e) {
             e.printStackTrace();

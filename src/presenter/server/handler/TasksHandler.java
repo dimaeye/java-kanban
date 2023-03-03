@@ -94,11 +94,7 @@ public class TasksHandler implements HttpHandler {
                 }
         );
         taskHandlers.put(new RequestInfo(URI.create("/tasks/subtask?id=*"), "GET"), this::getSubtask);
-        taskHandlers.put(new RequestInfo(URI.create("/tasks/subtask"), "POST"),
-                (RequestInfo requestInfo, HttpExchange exchange) -> {
-                    createSubtask(exchange);
-                }
-        );
+        taskHandlers.put(new RequestInfo(URI.create("/tasks/subtask/epic?id=*"), "POST"), this::createSubtask);
         taskHandlers.put(new RequestInfo(URI.create("/tasks/subtask?id=*"), "DELETE"), this::deleteSubtask);
         taskHandlers.put(new RequestInfo(URI.create("/tasks/subtask"), "DELETE"),
                 (RequestInfo requestInfo, HttpExchange exchange) -> {
@@ -232,7 +228,10 @@ public class TasksHandler implements HttpHandler {
 
             Epic epic = gson.fromJson(body, Epic.class);
             epic.setId(taskManager.getUniqueEpicId());
-            epic.getAllRelatedTasks().forEach(subtask -> subtask.setId(taskManager.getUniqueSubtaskId()));
+            epic.getAllRelatedTasks().forEach(subtask -> {
+                subtask.setId(taskManager.getUniqueSubtaskId());
+                subtask.addRelatedTask(epic);
+            });
 
             taskManager.createEpic(epic);
 
@@ -323,11 +322,15 @@ public class TasksHandler implements HttpHandler {
         }
     }
 
-    private void createSubtask(HttpExchange exchange) {
+    private void createSubtask(RequestInfo requestInfo, HttpExchange exchange) {
         try {
+            int epicId = Integer.parseInt(requestInfo.paramValues.get("id"));
+            Epic epic = taskManager.getEpic(epicId);
+
             String body = new String(exchange.getRequestBody().readAllBytes(), DEFAULT_CHARSET);
             Subtask subtask = gson.fromJson(body, Subtask.class);
             subtask.setId(taskManager.getUniqueSubtaskId());
+            subtask.addRelatedTask(epic);
 
             taskManager.createSubtask(subtask);
 

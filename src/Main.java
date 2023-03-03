@@ -7,7 +7,7 @@ import managers.Managers;
 import managers.historymanager.HistoryManager;
 import managers.historymanager.inmemory.InMemoryHistoryManagerImpl;
 import managers.taskmanager.TaskManager;
-import managers.taskmanager.infile.FileBackedTaskManagerImpl;
+import managers.taskmanager.http.HttpTaskManager;
 import presenter.server.HttpTaskServer;
 import presenter.server.KVServer;
 
@@ -42,7 +42,7 @@ public class Main {
         createEpics();
         System.out.println(DELIMITER.repeat(DELIMITER_LINE_SIZE));
 
-        /*changeTasksStatus();
+        changeTasksStatus();
         System.out.println(DELIMITER.repeat(DELIMITER_LINE_SIZE));
 
         changeSubtasksStatusAndCheckEpicStatus();
@@ -67,7 +67,7 @@ public class Main {
         System.out.println(DELIMITER.repeat(DELIMITER_LINE_SIZE));
 
         System.out.println("Проверка восстановления задач и истории просмотров из файла");
-        assertEqualsManagers();*/
+        assertEqualsManagers();
     }
 
     private static void createTasks() {
@@ -314,7 +314,7 @@ public class Main {
 
     private static void assertEqualsManagers() {
         HistoryManager newHistoryManager = new InMemoryHistoryManagerImpl();
-        TaskManager newTaskManager = new FileBackedTaskManagerImpl(newHistoryManager, "/tmp/tasks.csv");
+        TaskManager newTaskManager = new HttpTaskManager(newHistoryManager, "http://localhost:8078");
 
         if (taskManager.getAllTasks().equals(newTaskManager.getAllTasks()))
             System.out.println("Задачи из файла восстановлены верно");
