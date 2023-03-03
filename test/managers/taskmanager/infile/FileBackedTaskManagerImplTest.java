@@ -23,35 +23,35 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class FileBackedTaskManagerImplTest extends TaskManagerTest<FileBackedTaskManagerImpl> {
-    private static HistoryManager historyManager = getStubHistoryManager();
-    private static String filePath;
+public class FileBackedTaskManagerImplTest extends TaskManagerTest<FileBackedTaskManagerImpl> {
+    protected static HistoryManager historyManager = getStubHistoryManager();
+    protected static String path;
 
     @BeforeAll
     static void beforeAll() {
-        filePath = createTemporaryFile();
+        path = createTemporaryFile();
     }
 
     @BeforeEach
     @Override
-    protected void beforeEach() {
+    protected void beforeEach() throws IOException {
         historyManager = getStubHistoryManager();
-        filePath = createTemporaryFile();
-        taskManager = new FileBackedTaskManagerImpl(historyManager, filePath);
+        path = createTemporaryFile();
+        taskManager = new FileBackedTaskManagerImpl(historyManager, path);
     }
 
     @AfterEach
     @Override
     protected void afterEach() {
         try {
-            Files.deleteIfExists(Path.of(filePath));
+            Files.deleteIfExists(Path.of(path));
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     @Test
-    void shouldReturnEmptyListOfAllTasksFromEmptyFile() {
+    protected void shouldReturnEmptyListOfAllTasksFromEmptyFile() {
         assertAll(
                 () -> assertTrue(taskManager.getAllTasks().isEmpty()),
                 () -> assertTrue(taskManager.getAllEpics().isEmpty()),
@@ -60,7 +60,7 @@ class FileBackedTaskManagerImplTest extends TaskManagerTest<FileBackedTaskManage
     }
 
     @Test
-    void shouldReturnEmptyListOfSubtasksAfterRestoreFromFileWithTasksAndEpics() {
+    protected void shouldReturnEmptyListOfSubtasksAfterRestoreFromFileWithTasksAndEpics() {
         final int tasksCount = 10;
         for (int i = 0; i < tasksCount; i++) {
             Task task = new Task(taskManager.getUniqueTaskId(),
@@ -80,7 +80,7 @@ class FileBackedTaskManagerImplTest extends TaskManagerTest<FileBackedTaskManage
         final List<Task> expectedHistory = historyManager.getHistory();
 
         final HistoryManager newHistoryManager = getStubHistoryManager();
-        final TaskManager newTaskManager = new FileBackedTaskManagerImpl(newHistoryManager, filePath);
+        final TaskManager newTaskManager = restoreTaskManager(newHistoryManager, path);
 
         assertAll(
                 () -> assertEquals(
@@ -102,7 +102,7 @@ class FileBackedTaskManagerImplTest extends TaskManagerTest<FileBackedTaskManage
     }
 
     @Test
-    void shouldReturnEmptyHistoryAfterRestoreFromFileWithEmptyHistoryLine() {
+    protected void shouldReturnEmptyHistoryAfterRestoreFromFileWithEmptyHistoryLine() {
         Task task = generator.nextObject(Task.class);
         Epic epic = new Epic(
                 taskManager.getUniqueEpicId(), generator.nextObject(String.class), generator.nextObject(String.class)
@@ -123,7 +123,7 @@ class FileBackedTaskManagerImplTest extends TaskManagerTest<FileBackedTaskManage
         final List<Subtask> expectedSubtasks = taskManager.getAllSubtasks();
 
         final HistoryManager newHistoryManager = getStubHistoryManager();
-        final TaskManager newTaskManager = new FileBackedTaskManagerImpl(newHistoryManager, filePath);
+        final TaskManager newTaskManager = restoreTaskManager(newHistoryManager, path);
 
         assertAll(
                 () -> assertTrue(newHistoryManager.getHistory().isEmpty(), "Пустой список истории"),
@@ -137,7 +137,11 @@ class FileBackedTaskManagerImplTest extends TaskManagerTest<FileBackedTaskManage
         );
     }
 
-    private static HistoryManager getStubHistoryManager() {
+    protected TaskManager restoreTaskManager(HistoryManager historyManager, String path) {
+        return new FileBackedTaskManagerImpl(historyManager, path);
+    }
+
+    protected static HistoryManager getStubHistoryManager() {
         return new HistoryManager() {
             private final List<Task> tasks = new ArrayList<>();
 
@@ -162,11 +166,11 @@ class FileBackedTaskManagerImplTest extends TaskManagerTest<FileBackedTaskManage
     private static String createTemporaryFile() {
         try {
             Path temp = Files.createTempFile("", ".tmp");
-            filePath = temp.toString();
-            try (FileWriter fileWriter = new FileWriter(filePath)) {
+            path = temp.toString();
+            try (FileWriter fileWriter = new FileWriter(path)) {
                 fileWriter.write(FileBackedTaskMapper.HEADER_OF_FILE + "\n\n\n");
             }
-            return filePath;
+            return path;
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -3,11 +3,15 @@ package managers;
 import managers.historymanager.HistoryManager;
 import managers.historymanager.inmemory.InMemoryHistoryManagerImpl;
 import managers.taskmanager.TaskManager;
-import managers.taskmanager.infile.FileBackedTaskManagerImpl;
+import managers.taskmanager.http.HttpTaskManager;
+import presenter.server.KVServer;
 
 public class Managers {
     private static final HistoryManager historyManager = new InMemoryHistoryManagerImpl();
-    private static final TaskManager taskManager = new FileBackedTaskManagerImpl(historyManager, "/tmp/tasks.csv");
+    private static final TaskManager taskManager = new HttpTaskManager(
+            historyManager, "http://localhost:" + KVServer.PORT
+    );
+
 
     public static TaskManager getDefault() {
         return taskManager;

@@ -10,6 +10,7 @@ import domain.exceptions.TaskNotFoundException;
 import org.jeasy.random.EasyRandom;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -21,7 +22,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     protected T taskManager;
     protected final EasyRandom generator = new EasyRandom();
 
-    abstract protected void beforeEach();
+    abstract protected void beforeEach() throws IOException;
 
     abstract protected void afterEach();
 

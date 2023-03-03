@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="jeasy.easy.random.core" type="repository">
+    <properties maven-id="org.jeasy:easy-random-core:5.0.0" />
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/easy-random-core-5.0.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/objenesis-3.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/classgraph-4.8.90.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

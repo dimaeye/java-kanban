@@ -8,17 +8,20 @@ import java.util.List;
 import java.util.Objects;
 
 public class Subtask extends Task {
-    private Epic epic;
+    private transient Epic epic;
+    public int epicId;
     public final static int MAX_RELATED_TASKS_SIZE = 1;
 
     public Subtask(int id, String title, String description, Epic epic) {
         super(id, title, description);
         this.epic = epic;
+        epicId = epic.getId();
     }
 
     public Subtask(int id, String title, String description, LocalDateTime startTime, int duration, Epic epic) {
         super(id, title, description, startTime, duration);
         this.epic = epic;
+        epicId = epic.getId();
     }
 
     public Subtask(int id, String title, String description) {
@@ -29,6 +32,9 @@ public class Subtask extends Task {
         super(id, title, description, startTime, duration);
     }
 
+    public int getEpicId() {
+        return epicId;
+    }
 
     @Override
     public void setStatus(TaskStatus status) {
@@ -58,6 +64,7 @@ public class Subtask extends Task {
                 .anyMatch(relatedSubtask -> relatedSubtask.getId() == this.id);
         if (!currentSubtaskIsPresent)
             epic.addRelatedTask(this);
+        epicId = epic.getId();
     }
 
     @Override
@@ -91,6 +98,8 @@ public class Subtask extends Task {
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), epic);
+        return Objects.hash(super.hashCode(),
+                epic.id, epic.title, epic.description, epic.status, epic.duration, epic.startTime
+        );
     }
 }

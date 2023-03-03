@@ -7,20 +7,35 @@ import managers.Managers;
 import managers.historymanager.HistoryManager;
 import managers.historymanager.inmemory.InMemoryHistoryManagerImpl;
 import managers.taskmanager.TaskManager;
-import managers.taskmanager.infile.FileBackedTaskManagerImpl;
+import managers.taskmanager.http.HttpTaskManager;
+import presenter.server.HttpTaskServer;
+import presenter.server.KVServer;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
 
-    private static final TaskManager taskManager = Managers.getDefault();
-    private static final HistoryManager historyManager = Managers.getDefaultHistory();
+    private static TaskManager taskManager;
+    private static HistoryManager historyManager;
 
     private static final int DELIMITER_LINE_SIZE = 120;
     private static final String DELIMITER = "-";
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
+        KVServer kvServer = new KVServer();
+        kvServer.start();
+
+        HttpTaskServer httpTaskServer = new HttpTaskServer();
+        httpTaskServer.start();
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            httpTaskServer.stop();
+            kvServer.stop();
+        }));
+
+        taskManager = Managers.getDefault();
+        historyManager = Managers.getDefaultHistory();
         createTasks();
         System.out.println(DELIMITER.repeat(DELIMITER_LINE_SIZE));
 
@@ -299,22 +314,22 @@ public class Main {
 
     private static void assertEqualsManagers() {
         HistoryManager newHistoryManager = new InMemoryHistoryManagerImpl();
-        TaskManager newTaskManager = new FileBackedTaskManagerImpl(newHistoryManager, "/tmp/tasks.csv");
+        TaskManager newTaskManager = new HttpTaskManager(newHistoryManager, "http://localhost:8078");
 
         if (taskManager.getAllTasks().equals(newTaskManager.getAllTasks()))
-            System.out.println("Задачи из файла восстановлены верно");
+            System.out.println("Задачи восстановлены верно");
         else
-            throw new RuntimeException("Задачи из файла восстановлены некорректно!");
+            throw new RuntimeException("Задачи восстановлены некорректно!");
 
         if (taskManager.getAllEpics().equals(newTaskManager.getAllEpics()))
-            System.out.println("Эпики из файла восстановлены верно");
+            System.out.println("Эпики восстановлены верно");
         else
-            throw new RuntimeException("Эпики из файла восстановлены некорректно!");
+            throw new RuntimeException("Эпики восстановлены некорректно!");
 
         if (taskManager.getAllSubtasks().equals(newTaskManager.getAllSubtasks()))
-            System.out.println("Подзадачи из файла восстановлены верно");
+            System.out.println("Подзадачи восстановлены верно");
         else
-            throw new RuntimeException("Подзадачи из файла восстановлены некорректно!");
+            throw new RuntimeException("Подзадачи восстановлены некорректно!");
 
         if (historyManager.getHistory().equals(newHistoryManager.getHistory()))
             System.out.println("История просмотров восстановлена верно");

@@ -47,7 +47,7 @@ public class InMemoryTaskManagerImpl implements TaskManager {
     public void removeAllTasks() {
         for (Map.Entry<Integer, Task> taskEntry : tasks.entrySet()) {
             historyManager.remove(taskEntry.getKey());
-            prioritizedTasks.remove(taskEntry.getValue());
+            prioritizedTasks.removeIf(t -> t.getId() == taskEntry.getKey());
         }
         tasks.clear();
     }
@@ -80,7 +80,7 @@ public class InMemoryTaskManagerImpl implements TaskManager {
             if (isOverlappingTaskTime(task))
                 throw new OverlappingTaskTimeException(task.getId());
             Task currentTask = tasks.get(task.getId());
-            prioritizedTasks.remove(currentTask);
+            prioritizedTasks.removeIf(t -> t.getId() == currentTask.getId());
             currentTask.setTitle(task.getTitle());
             currentTask.setDescription(task.getDescription());
             currentTask.setStatus(task.getStatus());
@@ -95,7 +95,7 @@ public class InMemoryTaskManagerImpl implements TaskManager {
     @Override
     public void removeTask(int id) throws TaskNotFoundException {
         if (tasks.containsKey(id)) {
-            prioritizedTasks.remove(tasks.get(id));
+            prioritizedTasks.removeIf(t -> t.getId() == id);
             tasks.remove(id);
             historyManager.remove(id);
         } else
@@ -117,7 +117,7 @@ public class InMemoryTaskManagerImpl implements TaskManager {
     public void removeAllEpics() {
         for (int epicId : epics.keySet()) {
             epics.get(epicId).getAllRelatedTasks().forEach(subtask -> {
-                prioritizedTasks.remove(subtask);
+                prioritizedTasks.removeIf(t -> t.getId() == subtask.getId());
                 historyManager.remove(subtask.getId());
             });
             historyManager.remove(epicId);
@@ -159,7 +159,7 @@ public class InMemoryTaskManagerImpl implements TaskManager {
     public void removeEpic(int id) throws TaskNotFoundException {
         if (epics.containsKey(id)) {
             epics.get(id).getAllRelatedTasks().forEach(subtask -> {
-                prioritizedTasks.remove(subtask);
+                prioritizedTasks.removeIf(t -> t.getId() == subtask.getId());
                 historyManager.remove(subtask.getId());
             });
             historyManager.remove(id);
@@ -202,7 +202,7 @@ public class InMemoryTaskManagerImpl implements TaskManager {
     public void removeAllSubtasks() {
         for (Epic epic : epics.values()) {
             for (Task subtask : epic.getAllRelatedTasks()) {
-                prioritizedTasks.remove(subtask);
+                prioritizedTasks.removeIf(t -> t.getId() == subtask.getId());
                 historyManager.remove(subtask.getId());
             }
             epic.removeAllRelatedTasks();
@@ -244,7 +244,7 @@ public class InMemoryTaskManagerImpl implements TaskManager {
             if (isOverlappingTaskTime(subtask))
                 throw new OverlappingTaskTimeException(subtask.getId());
             Subtask currentSubtask = getSubtask(subtask.getId());
-            prioritizedTasks.remove(currentSubtask);
+            prioritizedTasks.removeIf(t -> t.getId() == currentSubtask.getId());
             currentSubtask.setTitle(subtask.getTitle());
             currentSubtask.setDescription(subtask.getDescription());
             currentSubtask.setStatus(subtask.getStatus());
@@ -261,7 +261,7 @@ public class InMemoryTaskManagerImpl implements TaskManager {
         Subtask subtask = getSubtask(id);
         Epic epic = epics.get(subtask.getAllRelatedTasks().get(0).getId());
         epic.removeRelatedTask(subtask.getId());
-        prioritizedTasks.remove(subtask);
+        prioritizedTasks.removeIf(t -> t.getId() == subtask.getId());
         historyManager.remove(subtask.getId());
     }
 
