@@ -53,35 +53,25 @@ public class TasksHandler implements HttpHandler {
         );
         taskHandlers.put(new RequestInfo(URI.create("/tasks/task?id=*"), "GET"), this::getTask);
         taskHandlers.put(new RequestInfo(URI.create("/tasks/task"), "POST"),
-                (RequestInfo requestInfo, HttpExchange exchange) -> {
-                    createTask(exchange);
-                }
+                (RequestInfo requestInfo, HttpExchange exchange) -> createTask(exchange)
         );
         taskHandlers.put(new RequestInfo(URI.create("/tasks/task?id=*"), "DELETE"), this::deleteTask);
         taskHandlers.put(new RequestInfo(URI.create("/tasks/task"), "DELETE"),
-                (RequestInfo requestInfo, HttpExchange exchange) -> {
-                    deleteAllTasks(exchange);
-                }
+                (RequestInfo requestInfo, HttpExchange exchange) -> deleteAllTasks(exchange)
         );
         taskHandlers.put(new RequestInfo(URI.create("/tasks/task?id=*"), "PUT"), this::updateTask);
 
         //epic routes
         taskHandlers.put(new RequestInfo(URI.create("/tasks/epic"), "GET"),
-                (RequestInfo requestInfo, HttpExchange exchange) -> {
-                    getAllEpics(exchange);
-                }
+                (RequestInfo requestInfo, HttpExchange exchange) -> getAllEpics(exchange)
         );
         taskHandlers.put(new RequestInfo(URI.create("/tasks/epic?id=*"), "GET"), this::getEpic);
         taskHandlers.put(new RequestInfo(URI.create("/tasks/epic"), "POST"),
-                (RequestInfo requestInfo, HttpExchange exchange) -> {
-                    createEpic(exchange);
-                }
+                (RequestInfo requestInfo, HttpExchange exchange) -> createEpic(exchange)
         );
         taskHandlers.put(new RequestInfo(URI.create("/tasks/epic?id=*"), "DELETE"), this::deleteEpic);
         taskHandlers.put(new RequestInfo(URI.create("/tasks/epic"), "DELETE"),
-                (RequestInfo requestInfo, HttpExchange exchange) -> {
-                    deleteAllEpics(exchange);
-                }
+                (RequestInfo requestInfo, HttpExchange exchange) -> deleteAllEpics(exchange)
         );
         taskHandlers.put(new RequestInfo(URI.create("/tasks/epic?id=*"), "PUT"), this::updateEpic);
         taskHandlers.put(new RequestInfo(URI.create("/tasks/subtask/epic?id=*"), "GET"),
@@ -89,30 +79,22 @@ public class TasksHandler implements HttpHandler {
 
         //subtask route
         taskHandlers.put(new RequestInfo(URI.create("/tasks/subtask"), "GET"),
-                (RequestInfo requestInfo, HttpExchange exchange) -> {
-                    getAllSubtasks(exchange);
-                }
+                (RequestInfo requestInfo, HttpExchange exchange) -> getAllSubtasks(exchange)
         );
         taskHandlers.put(new RequestInfo(URI.create("/tasks/subtask?id=*"), "GET"), this::getSubtask);
         taskHandlers.put(new RequestInfo(URI.create("/tasks/subtask/epic?id=*"), "POST"), this::createSubtask);
         taskHandlers.put(new RequestInfo(URI.create("/tasks/subtask?id=*"), "DELETE"), this::deleteSubtask);
         taskHandlers.put(new RequestInfo(URI.create("/tasks/subtask"), "DELETE"),
-                (RequestInfo requestInfo, HttpExchange exchange) -> {
-                    deleteAllSubtasks(exchange);
-                }
+                (RequestInfo requestInfo, HttpExchange exchange) -> deleteAllSubtasks(exchange)
         );
         taskHandlers.put(new RequestInfo(URI.create("/tasks/subtask?id=*"), "PUT"), this::updateSubtask);
 
         //other route
         taskHandlers.put(new RequestInfo(URI.create("/tasks/history"), "GET"),
-                (RequestInfo requestInfo, HttpExchange exchange) -> {
-                    getHistory(exchange);
-                }
+                (RequestInfo requestInfo, HttpExchange exchange) -> getHistory(exchange)
         );
         taskHandlers.put(new RequestInfo(URI.create("/tasks"), "GET"),
-                (RequestInfo requestInfo, HttpExchange exchange) -> {
-                    getPrioritizedTasks(exchange);
-                }
+                (RequestInfo requestInfo, HttpExchange exchange) -> getPrioritizedTasks(exchange)
         );
     }
 
@@ -345,9 +327,8 @@ public class TasksHandler implements HttpHandler {
             String body = new String(exchange.getRequestBody().readAllBytes(), DEFAULT_CHARSET);
             Subtask subtask = gson.fromJson(body, Subtask.class);
             subtask.setId(taskManager.getUniqueSubtaskId());
-            subtask.addRelatedTask(epic);
 
-            taskManager.createSubtask(subtask);
+            taskManager.createSubtask(new Subtask(subtask.getId(), subtask.getTitle(), subtask.getDescription(), epic));
 
             exchange.sendResponseHeaders(201, 0);
             exchange.close();
@@ -392,9 +373,9 @@ public class TasksHandler implements HttpHandler {
             String body = new String(exchange.getRequestBody().readAllBytes(), DEFAULT_CHARSET);
 
             Subtask subtask = gson.fromJson(body, Subtask.class);
-            subtask.setId(subtaskId);
 
-            taskManager.updateSubtask(subtask);
+            Epic epic = taskManager.getEpic(subtask.getEpicId());
+            taskManager.updateSubtask(new Subtask(subtaskId, subtask.getTitle(), subtask.getDescription(), epic));
 
             exchange.sendResponseHeaders(200, 0);
             exchange.close();

@@ -39,6 +39,7 @@ public class HttpTaskManager extends FileBackedTaskManagerImpl {
     protected void loadFromStorage() {
         kvTaskClient = new KVTaskClientImpl(this.path);
         Gson gson = GsonConfig.getGson();
+        final int[] initialUniqueId = {0};
 
         List<Task> tasks = new ArrayList<>();
         List<Epic> epics = new ArrayList<>();
@@ -71,13 +72,24 @@ public class HttpTaskManager extends FileBackedTaskManagerImpl {
             e.printStackTrace();
         }
 
-        tasks.forEach(this::createTask);
+        tasks.forEach(task -> {
+            createTask(task);
+            if (initialUniqueId[0] < task.getId())
+                initialUniqueId[0] = task.getId();
+        });
         epics.forEach(epic -> {
+            if (initialUniqueId[0] < epic.getId())
+                initialUniqueId[0] = epic.getId();
             List<Task> subtasks = epic.getAllRelatedTasks();
-            subtasks.forEach(s -> s.addRelatedTask(epic));
+            subtasks.forEach(s -> {
+                s.addRelatedTask(epic);
+                if (initialUniqueId[0] < s.getId())
+                    initialUniqueId[0] = s.getId();
+            });
             createEpic(epic);
         });
 
+        super.setInitialUniqueId(initialUniqueId[0]);
         setHistory(historyIds);
     }
 
